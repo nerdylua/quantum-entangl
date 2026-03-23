@@ -1,0 +1,9 @@
+fastapi>=0.115.0
+uvicorn>=0.34.0
+python-socketio>=5.12.0
+qiskit>=1.0.0
+qiskit-aer>=0.15.0
+numpy>=1.26.0
+cryptography>=44.0.0
+pydantic>=2.10.0
+python-multipart>=0.0.20
