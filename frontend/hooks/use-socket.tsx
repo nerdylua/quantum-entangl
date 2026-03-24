@@ -40,6 +40,25 @@ export function useSocket() {
       socket.emit("register", { nickname, publicKey });
     });
 
+    socket.on("disconnect", (reason) => {
+      // Server-initiated disconnect (e.g. nickname conflict) — don't show reconnecting
+      if (reason === "io server disconnect") return;
+      toast.warning("Connection lost", {
+        id: "socket-connection",
+        description: "Attempting to reconnect...",
+        duration: Infinity,
+      });
+    });
+
+    socket.io.on("reconnect_failed", () => {
+      toast.dismiss("socket-connection");
+      toast.error("Connection failed", {
+        id: "socket-connection",
+        description: "Unable to reconnect. Please refresh the page.",
+        duration: Infinity,
+      });
+    });
+
     socket.on("registered", (data: { success: boolean; onlineUsers: string[] }) => {
       if (data.success) {
         setOnlineUsers(data.onlineUsers);
@@ -53,6 +72,18 @@ export function useSocket() {
                 status: user.status || "online",
               });
             }
+          });
+        }
+        // Re-join rooms on reconnection (no-op on first connect since rooms is empty)
+        const rooms = useAppStore.getState().rooms;
+        if (rooms.length > 0) {
+          toast.dismiss("socket-connection");
+          toast.success("Reconnected", {
+            id: "socket-reconnected",
+            duration: 3000,
+          });
+          rooms.forEach((room) => {
+            socket.emit("join_room", { roomId: room.roomId });
           });
         }
       }
@@ -326,11 +357,11 @@ export function useSocket() {
       const pending = store.clearPendingChunks(data.attachmentId);
       const encryptedData = pending.chunks.length > 0 ? pending.chunks.join("") : undefined;
 
-      // Calculate progress based on pending chunks
-      let progress = 0;
-      if (pending.chunks.length > 0 && pending.totalChunks > 0) {
-        progress = Math.round((pending.chunks.length / pending.totalChunks) * 100);
-      }
+      // Use processedChunks count for accurate progress (tracks all received chunks)
+      const processedCount = useAppStore.getState().processedChunks[data.attachmentId]?.size ?? 0;
+      const progress = pending.totalChunks > 0
+        ? Math.round((processedCount / pending.totalChunks) * 100)
+        : 0;
 
       addFileTransfer(data.attachmentId, {
         attachmentId: data.attachmentId,
@@ -362,7 +393,9 @@ export function useSocket() {
 
       if (transfer) {
         // Transfer exists, append chunk atomically using _appendChunk
-        const progress = Math.round(((data.chunkIndex + 1) / data.totalChunks) * 100);
+        // Use processedChunks count for accurate progress regardless of arrival order
+        const processedCount = useAppStore.getState().processedChunks[data.attachmentId]?.size ?? 0;
+        const progress = Math.round((processedCount / data.totalChunks) * 100);
 
         store.updateFileTransfer(data.attachmentId, {
           _appendChunk: data.encryptedChunk,
@@ -398,6 +431,7 @@ export function useSocket() {
     return () => {
       // Remove all event listeners before disconnecting
       socket.off("connect");
+      socket.off("disconnect");
       socket.off("registered");
       socket.off("user_online");
       socket.off("user_offline");
@@ -417,6 +451,7 @@ export function useSocket() {
       socket.off("file_chunk");
       socket.off("file_error");
       socket.off("error");
+      socket.io.off("reconnect_failed");
       disconnectSocket();
       initialized.current = false;
     };

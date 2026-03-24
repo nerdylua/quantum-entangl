@@ -22,6 +22,11 @@ export function getSocket(): Socket {
     socket = io(BACKEND_URL, {
       autoConnect: false,
       transports: ["websocket", "polling"],
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 30000,
+      randomizationFactor: 0.5,
     });
   }
   return socket;

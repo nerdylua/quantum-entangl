@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAppStore } from "@/lib/store";
 import { getSocket } from "@/lib/socket";
 import { encryptMessage } from "@/lib/encryption";
@@ -28,6 +28,22 @@ export function MessageInput() {
 
   const roomKey = activeRoomId ? roomKeys[activeRoomId] : undefined;
   const typers = activeRoomId ? typingUsers[activeRoomId] || [] : [];
+
+  // Clear typing timeout and emit typing:false on unmount or room switch
+  useEffect(() => {
+    return () => {
+      if (typingTimeout.current) {
+        clearTimeout(typingTimeout.current);
+        typingTimeout.current = undefined;
+      }
+      if (activeRoomId) {
+        const socket = getSocket();
+        if (socket.connected) {
+          socket.emit("typing", { roomId: activeRoomId, typing: false });
+        }
+      }
+    };
+  }, [activeRoomId]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

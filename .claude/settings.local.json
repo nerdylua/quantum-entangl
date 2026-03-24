@@ -19,7 +19,8 @@
       "Bash(npx vitest:*)",
       "Bash(npx tsc:*)",
       "Bash(find /c/Users/nihaa/Downloads/quantum-entangl -name Sidebar* -o -name store.ts -o -name *socket*)",
-      "Bash(.venv/Scripts/python.exe -c \"from app.ws import handler; print\\(''OK''\\)\")"
+      "Bash(.venv/Scripts/python.exe -c \"from app.ws import handler; print\\(''OK''\\)\")",
+      "Bash(npx next:*)"
     ]
   }
 }
