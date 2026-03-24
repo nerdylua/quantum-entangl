@@ -4,6 +4,10 @@
 
 @custom-variant dark (&:is(.dark *));
 
+html {
+  overflow-x: hidden;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -126,4 +130,11 @@
   html {
     @apply font-sans;
   }
+}
+
+/* Override Radix ScrollArea's internal display:table wrapper.
+   display:table lets content expand the wrapper beyond the viewport
+   width, causing horizontal clipping in fixed-width panels. */
+[data-radix-scroll-area-viewport] > div {
+  display: block !important;
 }

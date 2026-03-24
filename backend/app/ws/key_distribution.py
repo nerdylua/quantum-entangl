@@ -64,18 +64,27 @@ async def perform_key_exchange(room_id: str, protocol: str | None = None):
 
     if result.status == "COMPROMISED":
         # Key rejected due to high QBER (eavesdropper detected)
+        thresholds = {
+            "bell_state": 0.15,
+            "bb84": 0.08,
+            "e91": 0.08,
+            "ghz": 0.08,
+        }
+        threshold = thresholds.get(result.protocol, 0.08)
+
         await sio.emit(
             "key_rejected",
             {
                 "roomId": room_id,
                 "qber": result.qber,
-                "reason": f"QBER {result.qber:.2%} exceeds threshold - eavesdropper detected",
+                "reason": f"QBER {result.qber:.2%} exceeds threshold ({threshold:.0%}) - eavesdropper detected",
                 "protocol": result.protocol,
+                "threshold": threshold,
             },
             room=room_id,
         )
 
-        # Auto-retry without eavesdropper
+        # Auto-disable eavesdropper so next manual rekey is clean
         if room.eve_enabled:
             room.eve_enabled = False
             await sio.emit(
@@ -84,22 +93,22 @@ async def perform_key_exchange(room_id: str, protocol: str | None = None):
                 room=room_id,
             )
 
-        retry_result = await generate_key(
-            protocol=room.protocol,
-            key_length=256,
-            eavesdropper=False,
-            n_parties=n_parties,
+        # Emit metrics for the failed attempt (dashboard update)
+        await sio.emit(
+            "qkd_metrics",
+            {
+                "roomId": room_id,
+                "qber": result.qber,
+                "protocol": result.protocol,
+                "keyLength": 0,
+                "timeTaken": result.time_taken,
+                "rounds": result.rounds,
+            },
+            room=room_id,
         )
 
-        if retry_result.status != "OK" or not retry_result.key:
-            await sio.emit(
-                "error",
-                {"message": f"Key generation failed after retry: {retry_result.status}"},
-                room=room_id,
-            )
-            return
-
-        result = retry_result
+        # Stop — user must manually rekey via "Secure Channel"
+        return
 
     elif result.status == "ERROR":
         # Protocol execution error

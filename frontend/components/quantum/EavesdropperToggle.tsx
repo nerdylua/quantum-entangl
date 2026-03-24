@@ -14,6 +14,7 @@ export function EavesdropperToggle() {
 
   const activeQKD = activeRoomId ? qkdState[activeRoomId] : undefined;
   const eveEnabled = activeQKD?.eveEnabled ?? false;
+  const isCompromised = activeQKD?.isCompromised ?? false;
 
   const handleToggle = (checked: boolean) => {
     if (!activeRoomId) return;
@@ -22,6 +23,8 @@ export function EavesdropperToggle() {
       roomId: activeRoomId,
       enabled: checked,
     });
+    // Optimistic update — server skips sender via skip_sid
+    useAppStore.getState().updateQKDState(activeRoomId, { eveEnabled: checked });
   };
 
   const handleRekey = () => {
@@ -47,13 +50,18 @@ export function EavesdropperToggle() {
           id="eve-toggle"
           checked={eveEnabled}
           onCheckedChange={handleToggle}
-          disabled={!activeRoomId}
+          disabled={!activeRoomId || isCompromised}
         />
       </div>
       {eveEnabled && (
         <p className="text-xs text-muted-foreground">
           Injects a measurement attack into the quantum channel. The next key
           exchange will show elevated QBER.
+        </p>
+      )}
+      {isCompromised && !eveEnabled && (
+        <p className="text-xs text-destructive">
+          Eavesdropper auto-disabled after detection.
         </p>
       )}
       <Button

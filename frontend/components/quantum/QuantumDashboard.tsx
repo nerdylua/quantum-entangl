@@ -8,6 +8,7 @@ import { Activity, KeyRound, ShieldX, Timer } from "lucide-react";
 import { QBERGauge } from "./QBERGauge";
 import { KeyTimeline } from "./KeyTimeline";
 import { EavesdropperToggle } from "./EavesdropperToggle";
+import { CompromisedBanner } from "./CompromisedBanner";
 import { ProtocolCompare } from "./ProtocolCompare";
 
 function protocolLabel(protocol: string): string {
@@ -59,7 +60,7 @@ export function QuantumDashboard() {
       {/* Content - min-h-0 is crucial for flex scroll */}
       <div className="flex-1 min-h-0 overflow-hidden">
         <ScrollArea className="h-full">
-        <div className="p-3 space-y-3">
+        <div className="p-3 space-y-3 w-full overflow-hidden">
           {activeQKD ? (
             <>
               {/* Protocol info */}
@@ -114,6 +115,9 @@ export function QuantumDashboard() {
 
               {/* QBER Gauge */}
               <QBERGauge qber={activeQKD.qber} />
+
+              {/* Compromised Banner — only renders when isCompromised */}
+              <CompromisedBanner />
 
               {/* Eavesdropper Toggle + Rekey */}
               <EavesdropperToggle />

@@ -26,7 +26,7 @@ export default function ChatPage() {
   if (!nickname) return null;
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden">
+    <div className="flex h-screen w-full overflow-hidden">
       {/* Sidebar */}
       <aside className="w-64 shrink-0 border-r bg-muted/30 flex flex-col h-full">
         <Sidebar />
@@ -40,7 +40,7 @@ export default function ChatPage() {
       </div>
 
       {/* Quantum Dashboard - fixed width right panel */}
-      <div className="w-80 shrink-0 border-l h-full">
+      <div className="w-80 shrink-0 border-l h-full overflow-hidden">
         <QuantumDashboard />
       </div>
     </div>

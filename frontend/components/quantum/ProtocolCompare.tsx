@@ -83,7 +83,7 @@ export function ProtocolCompare({ events }: ProtocolCompareProps) {
         <p className="text-[10px] text-muted-foreground mb-1">
           Avg QBER (%)
         </p>
-        <div className="h-[80px]">
+        <div className="h-[80px] overflow-hidden">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data} layout="vertical" margin={{ left: 0, right: 8, top: 0, bottom: 0 }}>
               <XAxis type="number" domain={[0, "auto"]} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
@@ -118,7 +118,7 @@ export function ProtocolCompare({ events }: ProtocolCompareProps) {
         <p className="text-[10px] text-muted-foreground mb-1">
           Avg Gen Time (s)
         </p>
-        <div className="h-[80px]">
+        <div className="h-[80px] overflow-hidden">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data} layout="vertical" margin={{ left: 0, right: 8, top: 0, bottom: 0 }}>
               <XAxis type="number" domain={[0, "auto"]} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />

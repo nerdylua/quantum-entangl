@@ -54,7 +54,7 @@ export function QBERGauge({ qber }: QBERGaugeProps) {
   ];
 
   return (
-    <div className="rounded-lg border p-3">
+    <div className="rounded-lg border p-3 overflow-hidden">
       <p className="text-xs font-semibold uppercase text-muted-foreground mb-1">
         QBER Level
       </p>

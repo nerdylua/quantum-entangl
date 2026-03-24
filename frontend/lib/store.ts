@@ -196,6 +196,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
             timeline: [],
             eveEnabled: false,
             isGenerating: false,
+            isCompromised: false,
           }),
           ...partial,
         },

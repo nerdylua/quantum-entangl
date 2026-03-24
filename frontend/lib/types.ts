@@ -51,10 +51,20 @@ export interface QKDEvent {
   timeTaken?: number;
 }
 
+export interface CompromisedDetails {
+  qber: number;
+  threshold: number;
+  protocol: string;
+  reason: string;
+  timestamp: number;
+}
+
 export interface QKDState {
   qber: number;
   protocol: string;
   timeline: QKDEvent[];
   eveEnabled: boolean;
   isGenerating: boolean;
+  isCompromised: boolean;
+  compromisedDetails?: CompromisedDetails;
 }

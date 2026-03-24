@@ -127,7 +127,7 @@ export function useSocket() {
 
     socket.on("room_deleted", (data: { roomId: string }) => {
       removeRoom(data.roomId);
-      toast.info("Room was deleted");
+      toast.info("Room was deleted", { id: `room-deleted-${data.roomId}` });
     });
 
     socket.on("message", (data: Message) => {
@@ -169,6 +169,8 @@ export function useSocket() {
           qber: data.qber,
           protocol: data.protocol,
           isGenerating: false,
+          isCompromised: false,
+          compromisedDetails: undefined,
           timeline: [
             ...(useAppStore.getState().qkdState[data.roomId]?.timeline || []),
             {
@@ -184,7 +186,7 @@ export function useSocket() {
         // Prominent key exchange notification
         toast.custom(
           (t) => (
-            <div className="w-[360px] rounded-xl border border-green-500/30 bg-background p-4 shadow-lg shadow-green-500/10">
+            <div className="w-full max-w-[340px] rounded-xl border border-green-500/30 bg-background p-4 shadow-lg shadow-green-500/10">
               <div className="flex items-center gap-3 mb-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/15">
                   <span className="text-lg">🔐</span>
@@ -235,9 +237,19 @@ export function useSocket() {
       qber: number;
       reason: string;
       protocol: string;
+      threshold?: number;
     }) => {
       updateQKDState(data.roomId, {
         qber: data.qber,
+        isGenerating: false,
+        isCompromised: true,
+        compromisedDetails: {
+          qber: data.qber,
+          threshold: data.threshold ?? 0.08,
+          protocol: data.protocol,
+          reason: data.reason,
+          timestamp: Date.now(),
+        },
         timeline: [
           ...(useAppStore.getState().qkdState[data.roomId]?.timeline || []),
           {
@@ -250,33 +262,12 @@ export function useSocket() {
           },
         ],
       });
-      toast.custom(
-        (t) => (
-          <div className="w-[360px] rounded-xl border border-red-500/30 bg-background p-4 shadow-lg shadow-red-500/10">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/15">
-                <span className="text-lg">🚨</span>
-              </div>
-              <div>
-                <p className="font-semibold text-sm text-red-500">Eavesdropper Detected!</p>
-                <p className="text-xs text-muted-foreground">Key rejected — auto-rekeying...</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2 rounded-lg bg-red-500/5 p-2.5">
-              <div className="text-center">
-                <p className="text-[10px] uppercase text-muted-foreground tracking-wider">Protocol</p>
-                <p className="text-xs font-semibold mt-0.5">{data.protocol.replace("_", " ").toUpperCase()}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-[10px] uppercase text-muted-foreground tracking-wider">QBER</p>
-                <p className="text-xs font-semibold mt-0.5 text-red-500">{(data.qber * 100).toFixed(1)}%</p>
-              </div>
-            </div>
-            <button onClick={() => toast.dismiss(t)} className="absolute top-2 right-2 text-muted-foreground hover:text-foreground text-xs p-1">✕</button>
-          </div>
-        ),
-        { id: `qkd-rejected-${data.roomId}`, duration: 8000 },
-      );
+      setKeyGenerating(false);
+      toast.error("Eavesdropper detected — channel compromised", {
+        id: `qkd-rejected-${data.roomId}`,
+        description: "See Quantum Dashboard for details.",
+        duration: 6000,
+      });
       addEncryptionLog(`Key REJECTED - Eve detected (QBER ${(data.qber * 100).toFixed(1)}%)`, data.roomId);
     });
 
@@ -296,12 +287,17 @@ export function useSocket() {
 
     socket.on("eavesdropper_status", (data: { roomId: string; enabled: boolean }) => {
       updateQKDState(data.roomId, { eveEnabled: data.enabled });
+      // Suppress toast for auto-disable after compromise (banner explains it)
+      const qkd = useAppStore.getState().qkdState[data.roomId];
+      if (!data.enabled && qkd?.isCompromised) return;
       if (data.enabled) {
         toast.warning("Eavesdropper enabled", {
+          id: `eve-status-${data.roomId}`,
           description: "Eve will intercept the next key exchange.",
         });
       } else {
         toast.info("Eavesdropper disabled", {
+          id: `eve-status-${data.roomId}`,
           description: "Quantum channel is clean.",
         });
       }
