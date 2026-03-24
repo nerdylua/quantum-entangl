@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { useAppStore } from "@/lib/store";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Activity } from "lucide-react";
+import { Activity, KeyRound, ShieldX, Timer } from "lucide-react";
 import { QBERGauge } from "./QBERGauge";
 import { KeyTimeline } from "./KeyTimeline";
 import { EavesdropperToggle } from "./EavesdropperToggle";
@@ -34,6 +34,19 @@ export function QuantumDashboard() {
   const allEvents = useMemo(() => {
     return Object.values(qkdState).flatMap((s) => s.timeline);
   }, [qkdState]);
+
+  // Summary stats for the active room
+  const stats = useMemo(() => {
+    if (!activeQKD) return null;
+    const accepted = activeQKD.timeline.filter((e) => e.status === "accepted");
+    const rejected = activeQKD.timeline.filter((e) => e.status === "rejected");
+    const latest = accepted[accepted.length - 1];
+    return {
+      accepted: accepted.length,
+      rejected: rejected.length,
+      latestTime: latest?.timeTaken?.toFixed(1) ?? "—",
+    };
+  }, [activeQKD]);
 
   return (
     <div className="flex h-full flex-col bg-muted/10 overflow-hidden">
@@ -65,6 +78,39 @@ export function QuantumDashboard() {
                   )}
                 </div>
               </div>
+
+              {/* Summary Stats */}
+              {stats && activeQKD.timeline.length > 0 && (
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="rounded-lg border bg-emerald-500/10 p-2 text-center">
+                    <div className="flex items-center justify-center gap-1 mb-0.5">
+                      <KeyRound className="h-3 w-3 text-emerald-500" />
+                    </div>
+                    <p className="text-base font-bold text-emerald-500">
+                      {stats.accepted}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">Accepted</p>
+                  </div>
+                  <div className="rounded-lg border bg-destructive/10 p-2 text-center">
+                    <div className="flex items-center justify-center gap-1 mb-0.5">
+                      <ShieldX className="h-3 w-3 text-destructive" />
+                    </div>
+                    <p className="text-base font-bold text-destructive">
+                      {stats.rejected}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">Rejected</p>
+                  </div>
+                  <div className="rounded-lg border bg-primary/10 p-2 text-center">
+                    <div className="flex items-center justify-center gap-1 mb-0.5">
+                      <Timer className="h-3 w-3 text-primary" />
+                    </div>
+                    <p className="text-base font-bold text-primary">
+                      {stats.latestTime}s
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">Last Gen</p>
+                  </div>
+                </div>
+              )}
 
               {/* QBER Gauge */}
               <QBERGauge qber={activeQKD.qber} />

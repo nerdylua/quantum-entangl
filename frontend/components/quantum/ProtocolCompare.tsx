@@ -86,12 +86,12 @@ export function ProtocolCompare({ events }: ProtocolCompareProps) {
         <div className="h-[80px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data} layout="vertical" margin={{ left: 0, right: 8, top: 0, bottom: 0 }}>
-              <XAxis type="number" domain={[0, "auto"]} tick={{ fontSize: 10 }} />
+              <XAxis type="number" domain={[0, "auto"]} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
               <YAxis
                 type="category"
                 dataKey="label"
                 width={60}
-                tick={{ fontSize: 10 }}
+                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
               />
               <Tooltip
                 contentStyle={{
@@ -121,12 +121,12 @@ export function ProtocolCompare({ events }: ProtocolCompareProps) {
         <div className="h-[80px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data} layout="vertical" margin={{ left: 0, right: 8, top: 0, bottom: 0 }}>
-              <XAxis type="number" domain={[0, "auto"]} tick={{ fontSize: 10 }} />
+              <XAxis type="number" domain={[0, "auto"]} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
               <YAxis
                 type="category"
                 dataKey="label"
                 width={60}
-                tick={{ fontSize: 10 }}
+                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
               />
               <Tooltip
                 contentStyle={{
