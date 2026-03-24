@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(pip install:*)",
+      "Bash(python:*)",
+      "Bash(where python:*)",
+      "Bash(\"/c/Program Files/Python312/python.exe\" -m pytest tests/test_rooms.py tests/test_key_distribution.py tests/test_engine.py -v 2>&1)",
+      "Bash(\"/c/Program Files/Python312/python.exe\" -m pip show python-socketio qiskit)",
+      "Bash(pip show:*)",
+      "Bash(VENV=\"/c/Users/nihaa/Downloads/quantum-entangl/backend/.venv/Scripts/python.exe\")",
+      "Bash(\"$VENV\" -m pip show python-socketio qiskit pytest)",
+      "Bash(\"/c/Users/nihaa/Downloads/quantum-entangl/backend/.venv/Scripts/python.exe\" -m pip list)",
+      "Bash(.venv/Scripts/python -m pytest tests/ -v)",
+      "Bash(.venv/Scripts/pip install:*)",
+      "Bash(.venv/Scripts/python.exe -m pip install pytest pytest-asyncio)",
+      "Bash(.venv/Scripts/python.exe -m ensurepip)",
+      "Bash(.venv/Scripts/python.exe -m pytest tests/ -v)",
+      "Bash(npx vitest:*)",
+      "Bash(npx tsc:*)"
+    ]
+  }
+}

@@ -69,10 +69,10 @@ function generateNonce(): Uint8Array {
 export function encryptMessage(plaintext: string, binaryKey: string): string {
   const keyBytes = binaryKeyToBytes(binaryKey);
   const nonce = generateNonce();
-  const textBytes = aesjs.utils.utf8.toBytes(plaintext);
+  const textBytes = new TextEncoder().encode(plaintext);
   const aesCtr = new aesjs.ModeOfOperation.ctr(keyBytes, new aesjs.Counter(nonce));
   const encryptedBytes = aesCtr.encrypt(textBytes);
-  return aesjs.utils.hex.fromBytes(Array.from(nonce)) + ":" + aesjs.utils.hex.fromBytes(encryptedBytes);
+  return aesjs.utils.hex.fromBytes(nonce) + ":" + aesjs.utils.hex.fromBytes(encryptedBytes);
 }
 
 /**
@@ -106,5 +106,5 @@ export function decryptMessage(
   const encryptedBytes = aesjs.utils.hex.toBytes(encryptedHex);
   const aesCtr = new aesjs.ModeOfOperation.ctr(keyBytes, new aesjs.Counter(nonce));
   const decryptedBytes = aesCtr.decrypt(encryptedBytes);
-  return aesjs.utils.utf8.fromBytes(decryptedBytes);
+  return new TextDecoder().decode(new Uint8Array(decryptedBytes));
 }

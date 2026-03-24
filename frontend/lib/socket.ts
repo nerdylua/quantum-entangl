@@ -2,7 +2,18 @@
 
 import { io, Socket } from "socket.io-client";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+function getBackendUrl(): string {
+  if (process.env.NEXT_PUBLIC_BACKEND_URL) {
+    return process.env.NEXT_PUBLIC_BACKEND_URL;
+  }
+  if (typeof window !== "undefined") {
+    // Use the same hostname the browser is on (works for LAN access)
+    return `http://${window.location.hostname}:8000`;
+  }
+  return "http://localhost:8000";
+}
+
+const BACKEND_URL = getBackendUrl();
 
 let socket: Socket | null = null;
 

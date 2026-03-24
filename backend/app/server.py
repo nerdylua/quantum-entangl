@@ -4,14 +4,14 @@ from fastapi.middleware.cors import CORSMiddleware
 
 sio = socketio.AsyncServer(
     async_mode="asgi",
-    cors_allowed_origins=[],
+    cors_allowed_origins="*",
 )
 
 fastapi_app = FastAPI(title="Entangl Backend", version="0.1.0")
 
 fastapi_app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

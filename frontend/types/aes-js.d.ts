@@ -11,14 +11,14 @@ declare module "aes-js" {
   }
 
   class Counter {
-    constructor(initialValue: number);
+    constructor(initialValue: number | Uint8Array);
   }
 
   namespace ModeOfOperation {
     class ctr {
       constructor(key: Uint8Array, counter: Counter);
       encrypt(plaintext: Uint8Array): Uint8Array;
-      decrypt(ciphertext: Uint8Array): Uint8Array;
+      decrypt(ciphertext: Uint8Array): number[];
     }
   }
 }
