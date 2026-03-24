@@ -178,6 +178,57 @@ async def leave_room(sid, data):
 
 
 @sio.event
+async def delete_room(sid, data):
+    room_id = data.get("roomId", "")
+    room = room_state.get_room(room_id)
+    user = room_state.get_user_by_sid(sid)
+
+    if not room or not user:
+        return
+
+    if user.nickname not in room.members:
+        await sio.emit("error", {"message": "Not a member of this room"}, to=sid)
+        return
+
+    # Notify all members before deletion
+    await sio.emit("room_deleted", {"roomId": room_id}, room=room_id)
+
+    # Remove all members from the Socket.IO room
+    for member_nick in list(room.members):
+        member = room_state.get_user_by_nickname(member_nick)
+        if member:
+            await sio.leave_room(member.sid, room_id)
+
+    del room_state.rooms[room_id]
+
+
+@sio.event
+async def edit_room(sid, data):
+    room_id = data.get("roomId", "")
+    new_name = data.get("roomName", "").strip()
+    room = room_state.get_room(room_id)
+    user = room_state.get_user_by_sid(sid)
+
+    if not room or not user:
+        return
+
+    if user.nickname not in room.members:
+        await sio.emit("error", {"message": "Not a member of this room"}, to=sid)
+        return
+
+    if not new_name:
+        await sio.emit("error", {"message": "Room name cannot be empty"}, to=sid)
+        return
+
+    room.room_name = new_name
+    await sio.emit(
+        "room_updated",
+        {"roomId": room_id, "roomName": new_name},
+        room=room_id,
+    )
+
+
+@sio.event
 async def message(sid, data):
     room_id = data.get("roomId", "")
     content = data.get("content", "")

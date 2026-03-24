@@ -17,7 +17,9 @@
       "Bash(.venv/Scripts/python.exe -m ensurepip)",
       "Bash(.venv/Scripts/python.exe -m pytest tests/ -v)",
       "Bash(npx vitest:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(find /c/Users/nihaa/Downloads/quantum-entangl -name Sidebar* -o -name store.ts -o -name *socket*)",
+      "Bash(.venv/Scripts/python.exe -c \"from app.ws import handler; print\\(''OK''\\)\")"
     ]
   }
 }

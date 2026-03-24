@@ -13,6 +13,8 @@ export function useSocket() {
   const publicKey = useAppStore((s) => s.publicKey);
   const addRoom = useAppStore((s) => s.addRoom);
   const updateRoomMembers = useAppStore((s) => s.updateRoomMembers);
+  const updateRoomName = useAppStore((s) => s.updateRoomName);
+  const removeRoom = useAppStore((s) => s.removeRoom);
   const addMessage = useAppStore((s) => s.addMessage);
   const setOnlineUsers = useAppStore((s) => s.setOnlineUsers);
   const addOnlineUser = useAppStore((s) => s.addOnlineUser);
@@ -86,6 +88,15 @@ export function useSocket() {
 
     socket.on("member_left", (data: { roomId: string; nickname: string; members: string[] }) => {
       updateRoomMembers(data.roomId, data.members);
+    });
+
+    socket.on("room_updated", (data: { roomId: string; roomName: string }) => {
+      updateRoomName(data.roomId, data.roomName);
+    });
+
+    socket.on("room_deleted", (data: { roomId: string }) => {
+      removeRoom(data.roomId);
+      toast.info("Room was deleted");
     });
 
     socket.on("message", (data: Message) => {

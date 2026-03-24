@@ -19,6 +19,7 @@ interface AppStore {
   setActiveRoom: (roomId: string) => void;
   addRoom: (room: Room) => void;
   updateRoomMembers: (roomId: string, members: string[]) => void;
+  updateRoomName: (roomId: string, roomName: string) => void;
   removeRoom: (roomId: string) => void;
 
   // Messages (per room)
@@ -105,6 +106,12 @@ export const useAppStore = create<AppStore>((set, get) => ({
     set((state) => ({
       rooms: state.rooms.map((r) =>
         r.roomId === roomId ? { ...r, members } : r
+      ),
+    })),
+  updateRoomName: (roomId, roomName) =>
+    set((state) => ({
+      rooms: state.rooms.map((r) =>
+        r.roomId === roomId ? { ...r, roomName } : r
       ),
     })),
   removeRoom: (roomId) =>
