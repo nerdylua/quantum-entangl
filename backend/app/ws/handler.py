@@ -245,6 +245,15 @@ async def message(sid, data):
     if not room:
         return
 
+    # Reject unencrypted messages — require QKD key exchange first
+    if not encrypted:
+        await sio.emit(
+            "error",
+            {"message": "Cannot send unencrypted messages. Wait for key exchange to complete."},
+            to=sid,
+        )
+        return
+
     # Initialize read_by with sender already marked as read
     read_by = {user.nickname: timestamp}
 

@@ -28,6 +28,11 @@ export function MessageInput() {
 
   const roomKey = activeRoomId ? roomKeys[activeRoomId] : undefined;
   const typers = activeRoomId ? typingUsers[activeRoomId] || [] : [];
+  const qkdState = useAppStore((s) => s.qkdState);
+  const isGeneratingKey = activeRoomId
+    ? qkdState[activeRoomId]?.isGenerating ?? false
+    : false;
+  const canSend = !!roomKey;
 
   // Clear typing timeout and emit typing:false on unmount or room switch
   useEffect(() => {
@@ -163,33 +168,29 @@ export function MessageInput() {
   };
 
   const handleSend = () => {
+    if (!activeRoomId || !nickname || !roomKey) return;
+
     // If there's a file selected, send it
-    if (selectedFile && roomKey) {
+    if (selectedFile) {
       handleSendFile();
       return;
     }
 
     const trimmed = text.trim();
-    if (!trimmed || !activeRoomId || !nickname) return;
+    if (!trimmed) return;
 
     const socket = getSocket();
-    let content = trimmed;
-    let encrypted = false;
+    const content = encryptMessage(trimmed, roomKey);
     const timestamp = Math.floor(Date.now() / 1000);
     const messageId = crypto.randomUUID();
-
-    if (roomKey) {
-      content = encryptMessage(trimmed, roomKey);
-      encrypted = true;
-      addEncryptionLog("Sent encrypted message", activeRoomId);
-    }
+    addEncryptionLog("Sent encrypted message", activeRoomId);
 
     // Add message to local store immediately (server skips sender)
     addMessage(activeRoomId, {
       roomId: activeRoomId,
       sender: nickname,
       content,
-      encrypted,
+      encrypted: true,
       timestamp,
       messageId,
       readBy: { [nickname]: timestamp },
@@ -198,7 +199,7 @@ export function MessageInput() {
     socket.emit("message", {
       roomId: activeRoomId,
       content,
-      encrypted,
+      encrypted: true,
       timestamp,
       messageId,
     });
@@ -300,11 +301,15 @@ export function MessageInput() {
               }
             }}
             placeholder={
-              roomKey ? "Type an encrypted message..." : "Type a message..."
+              isGeneratingKey
+                ? "Generating quantum key..."
+                : roomKey
+                  ? "Type an encrypted message..."
+                  : "Waiting for quantum key exchange..."
             }
             className="min-h-[40px] max-h-[120px] resize-none pr-10"
             rows={1}
-            disabled={isUploading}
+            disabled={!canSend || isUploading}
           />
           <div className="absolute bottom-2 right-2 text-muted-foreground">
             {roomKey ? (
@@ -318,7 +323,7 @@ export function MessageInput() {
         <Button
           type="submit"
           size="icon"
-          disabled={(!text.trim() && !selectedFile) || isUploading}
+          disabled={!canSend || (!text.trim() && !selectedFile) || isUploading}
         >
           {isUploading ? (
             <Loader2 className="h-4 w-4 animate-spin" />

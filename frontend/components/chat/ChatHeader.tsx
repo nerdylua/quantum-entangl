@@ -48,8 +48,6 @@ export function ChatHeader({ onSidebarToggle, onQuantumToggle, quantumOpen }: Ch
           <Menu className="h-4 w-4" />
         </Button>
 
-        <span className="text-muted-foreground text-sm flex-1">Select a room to start chatting</span>
-
         <div className="flex items-center gap-1">
           {/* Mobile quantum toggle */}
           <Button
