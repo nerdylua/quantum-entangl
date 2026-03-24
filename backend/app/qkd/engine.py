@@ -31,19 +31,19 @@ PROTOCOL_MAP = {
 }
 
 QBER_THRESHOLDS = {
-    "bell_state": 0.25,
-    "bb84": 0.11,
-    "e91": 0.11,
-    "ghz": 0.11,
+    "bell_state": 0.15,
+    "bb84": 0.08,
+    "e91": 0.08,
+    "ghz": 0.08,
 }
 
 # Protocol-specific round sizes to balance speed vs key yield
 # E91 has ~22% key yield, so needs larger rounds
 ROUND_SIZES = {
-    "bell_state": 64,  # Larger: only ~8.3% of trials produce key bits (1/12 match rate)
-    "bb84": 32,
-    "e91": 128,  # Larger to compensate for low key yield (~22%)
-    "ghz": 32,
+    "bell_state": 128,  # Larger: only ~8.3% of trials produce key bits (1/12 match rate)
+    "bb84": 64,
+    "e91": 256,  # Larger to compensate for low key yield (~22%)
+    "ghz": 64,
 }
 
 
@@ -56,7 +56,7 @@ def resolve_protocol(protocol: str, n_parties: int) -> str:
 
 async def generate_key(
     protocol: str,
-    key_length: int = 128,
+    key_length: int = 256,
     eavesdropper: bool = False,
     n_parties: int = 2,
 ) -> KeyResult:

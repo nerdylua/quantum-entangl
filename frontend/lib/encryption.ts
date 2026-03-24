@@ -17,11 +17,11 @@ export function generateKeyPair(): {
 
 /**
  * Decrypt an RSA-OAEP encrypted symmetric key.
- * The backend sends 16 raw key bytes encrypted with RSA-OAEP.
- * Returns a 128-char binary string ("01010110...") for use with AES functions.
+ * The backend sends 32 raw key bytes encrypted with RSA-OAEP.
+ * Returns a 256-char binary string ("01010110...") for use with AES functions.
  * @param encryptedKeyBase64 - Base64-encoded RSA-OAEP ciphertext
  * @param privateKeyPem - PEM-encoded RSA private key
- * @returns The decrypted 128-char binary key string
+ * @returns The decrypted 256-char binary key string
  */
 export function decryptSymmetricKey(
   encryptedKeyBase64: string,
@@ -33,18 +33,20 @@ export function decryptSymmetricKey(
     md: forge.md.sha256.create(),
     mgf1: { md: forge.md.sha256.create() },
   });
-  // Convert raw bytes to 128-char binary string
+  // Convert raw bytes to 256-char binary string
   return Array.from(rawBytes)
     .map((ch: string) => ch.charCodeAt(0).toString(2).padStart(8, "0"))
     .join("");
 }
 
 /**
- * Convert a binary string key (e.g. "01010110...") to a 16-byte Uint8Array for AES.
+ * Convert a binary string key (e.g. "01010110...") to a byte Uint8Array for AES.
+ * Supports both 128-bit (16 bytes) and 256-bit (32 bytes) keys.
  */
 function binaryKeyToBytes(binaryKey: string): Uint8Array {
-  const key = new Uint8Array(16);
-  for (let i = 0; i < 16; i++) {
+  const byteLength = binaryKey.length / 8;
+  const key = new Uint8Array(byteLength);
+  for (let i = 0; i < byteLength; i++) {
     key[i] = parseInt(binaryKey.substring(i * 8, i * 8 + 8), 2);
   }
   return key;
@@ -60,10 +62,10 @@ function generateNonce(): Uint8Array {
 }
 
 /**
- * Encrypt a plaintext message with AES-128-CTR using a random nonce.
+ * Encrypt a plaintext message with AES-256-CTR using a random nonce.
  * Output format: hex(nonce) + ":" + hex(ciphertext)
  * @param plaintext - The message to encrypt
- * @param binaryKey - 128-char binary string key
+ * @param binaryKey - 256-char binary string key
  * @returns Nonce-prefixed hex-encoded ciphertext
  */
 export function encryptMessage(plaintext: string, binaryKey: string): string {
@@ -76,10 +78,10 @@ export function encryptMessage(plaintext: string, binaryKey: string): string {
 }
 
 /**
- * Decrypt a nonce-prefixed hex-encoded ciphertext with AES-128-CTR.
+ * Decrypt a nonce-prefixed hex-encoded ciphertext with AES-256-CTR.
  * Accepts both new format "hex(nonce):hex(ciphertext)" and legacy format "hex(ciphertext)".
  * @param ciphertext - Hex-encoded ciphertext, optionally with nonce prefix
- * @param binaryKey - 128-char binary string key
+ * @param binaryKey - 256-char binary string key
  * @returns Decrypted plaintext
  */
 export function decryptMessage(

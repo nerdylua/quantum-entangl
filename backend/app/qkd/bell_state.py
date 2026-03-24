@@ -162,7 +162,7 @@ def generate_round(round_size: int = 64, eavesdropper: bool = False):
     # Batch transpile and run all circuits at once
     try:
         transpiled = transpile(circuits, backend, optimization_level=0)
-        job = backend.run(transpiled, shots=32)
+        job = backend.run(transpiled, shots=128)
         result = job.result()
     except Exception as e:
         print(f"Bell State batch execution error: {e}")

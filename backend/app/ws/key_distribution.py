@@ -14,10 +14,10 @@ from app.qkd.engine import generate_key, KeyResult
 def _encrypt_key_for_user(binary_key: str, public_key_pem: str) -> str:
     """
     Encrypt a binary key string with the user's RSA public key (RSA-OAEP).
-    Converts the 128-char binary string ("010110...") to 16 raw bytes before encrypting.
+    Converts the 256-char binary string ("010110...") to 32 raw bytes before encrypting.
     Returns base64-encoded ciphertext.
     """
-    key_bytes = int(binary_key, 2).to_bytes(16, byteorder="big")
+    key_bytes = int(binary_key, 2).to_bytes(len(binary_key) // 8, byteorder="big")
     public_key = serialization.load_pem_public_key(public_key_pem.encode("utf-8"))
     encrypted = public_key.encrypt(
         key_bytes,
@@ -36,7 +36,7 @@ async def perform_key_exchange(room_id: str, protocol: str | None = None):
 
     Flow:
     1. Emit rekey_started to all members
-    2. Run QKD engine to generate 128-bit key
+    2. Run QKD engine to generate 256-bit key
     3. If COMPROMISED: emit key_rejected, auto-retry without eavesdropper
     4. If OK: encrypt key with each member's RSA public key, emit key_exchange
     5. Emit qkd_metrics for dashboard
@@ -57,7 +57,7 @@ async def perform_key_exchange(room_id: str, protocol: str | None = None):
     # Run QKD engine (auto-selects GHZ for 3+ parties)
     result: KeyResult = await generate_key(
         protocol=room.protocol,
-        key_length=128,
+        key_length=256,
         eavesdropper=room.eve_enabled,
         n_parties=n_parties,
     )
@@ -86,7 +86,7 @@ async def perform_key_exchange(room_id: str, protocol: str | None = None):
 
         retry_result = await generate_key(
             protocol=room.protocol,
-            key_length=128,
+            key_length=256,
             eavesdropper=False,
             n_parties=n_parties,
         )
@@ -122,7 +122,7 @@ async def perform_key_exchange(room_id: str, protocol: str | None = None):
             # Retry with alternative protocol
             retry_result = await generate_key(
                 protocol=alt_protocol,
-                key_length=128,
+                key_length=256,
                 eavesdropper=False,
                 n_parties=n_parties,
             )
