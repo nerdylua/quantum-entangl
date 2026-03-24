@@ -1,23 +1,25 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, JetBrains_Mono, Inter } from "next/font/google";
+import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 
-const spaceGrotesk = Space_Grotesk({
+const interSans = Inter({
+  variable: "--font-sans",
   subsets: ["latin"],
+});
+
+const spaceGroteskHeadline = Space_Grotesk({
   variable: "--font-headline",
+  subsets: ["latin"],
   weight: ["300", "400", "700"],
 });
 
 const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
   variable: "--font-mono-code",
-  weight: ["400", "700"],
+  subsets: ["latin"],
 });
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "Entangl — Quantum-Secured Multi-Party Chat",
@@ -35,8 +37,8 @@ export default function RootLayout({
       lang="en"
       className={cn(
         "font-sans",
-        inter.variable,
-        spaceGrotesk.variable,
+        interSans.variable,
+        spaceGroteskHeadline.variable,
         jetbrainsMono.variable
       )}
       suppressHydrationWarning

@@ -7,6 +7,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { Loader2, Check, ShieldAlert, Zap, KeyRound, Eye, Lock, ArrowRight } from "lucide-react";
+import Lenis from 'lenis';
 
 // Register GSAP plugins
 if (typeof window !== "undefined") {
@@ -63,18 +64,20 @@ function Hero() {
         .from(".hero-desc", { opacity: 0, y: 20, duration: 0.6 }, "-=0.8")
         .from(".hero-btn", { opacity: 0, scale: 0.95, duration: 0.5 }, "-=0.6");
 
-      // Word flip animation
-      const wordTl = gsap.timeline({ repeat: -1 });
-      words.forEach((word, i) => {
-        wordTl.to(".animated-word", {
-          y: "-100%", opacity: 0, duration: 0.4, ease: "power2.in"
-        })
-          .set(".animated-word", { textContent: words[(i + 1) % words.length], y: "100%" })
-          .to(".animated-word", {
-            y: "0%", opacity: 1, duration: 0.4, ease: "power2.out"
-          })
-          .to({}, { duration: 2.5 }); // hold word on screen
+      // Word flip animation (Seamless vertical slider instead of textContent replacement)
+      const sliderTl = gsap.timeline({ repeat: -1 });
+      words.forEach((_, i) => {
+        // Wait 2.5s on the current word
+        sliderTl.to({}, { duration: 2.5 })
+          // Slide up to the next word
+          .to(".word-slider", {
+            y: `-${(i + 1) * 1.2}em`,
+            duration: 0.6,
+            ease: "back.inOut(1.2)"
+          });
       });
+      // Immediately reset to the very first word invisibly when reaching the duplicate at the end
+      sliderTl.set(".word-slider", { y: "0em" });
     },
     { scope: container }
   );
@@ -96,15 +99,24 @@ function Hero() {
             <span className="text-[#c6c6c6] opacity-50">[ SYSTEM: SECURE ]</span>
           </div>
 
-          <h1 className="font-headline font-black text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] leading-[0.95] tight-tracking uppercase mb-8 flex flex-col items-start w-full">
-            <div className="hero-title-line overflow-visible pb-2 pt-2">
-              <span className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">QUANTUM</span>
+          <h1 className="font-headline font-bold text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] leading-[1] tight-tracking uppercase mb-8 flex flex-col items-start w-full">
+            <div className="hero-title-line overflow-visible text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] pb-1">
+              QUANTUM
             </div>
-            <div className="hero-title-line overflow-visible pb-2 flex items-center gap-4 sm:gap-6 mt-1 w-full max-w-[full]">
-              <span className="text-[#c6c6c6]">SECURED</span>
-              <div className="overflow-hidden h-[1.1em] relative inline-flex items-center w-[4.5em] bg-[#FF0000] text-black px-2 md:px-3 shadow-[0_0_30px_rgba(255,0,0,0.3)]">
-                <span className="animated-word absolute font-bold inset-y-0 flex items-center justify-center w-[calc(100%-1rem)] md:w-[calc(100%-1.5rem)]">CHAT</span>
+            <div className="hero-title-line overflow-visible text-[#c6c6c6] pb-1">
+              SECURED
+            </div>
+            <div className="hero-title-line overflow-hidden h-[1.2em] relative inline-flex items-center w-[7.5em] sm:w-[6.5em] bg-[#000000] mt-2 border border-[#474747] border-l-[8px] border-l-[#FF0000] shadow-[0_0_30px_rgba(255,0,0,0.15)] group">
+              <div className="absolute inset-0 scanlines opacity-50 mix-blend-screen pointer-events-none z-10" />
+              <div className="word-slider absolute top-0 left-0 w-full flex flex-col">
+                {[...words, words[0]].map((w, i) => (
+                  <span key={i} className="flex flex-col justify-center h-[1.2em] px-4 md:px-5 font-bold tracking-widest text-[#FF0000] drop-shadow-[0_0_10px_rgba(255,0,0,0.6)]">
+                    {w}
+                  </span>
+                ))}
               </div>
+              {/* Blinking cursor effect at the end of the box */}
+              <span className="absolute right-4 md:right-5 top-1/2 -translate-y-1/2 w-[0.4em] h-[0.7em] bg-[#FF0000] animate-pulse shadow-[0_0_8px_rgba(255,0,0,0.8)] z-10" />
             </div>
           </h1>
 
@@ -606,6 +618,29 @@ function Footer() {
 
 // ─── Main Page ───
 export default function LandingPage() {
+  useEffect(() => {
+    const lenis = new Lenis({
+      autoRaf: true,
+    });
+    
+    // Sync Lenis with GSAP ScrollTrigger
+    lenis.on('scroll', ScrollTrigger.update);
+    
+    gsap.ticker.add((time) => {
+      lenis.raf(time * 1000);
+    });
+    
+    gsap.ticker.lagSmoothing(0);
+
+    return () => {
+      // Cleanup
+      lenis.destroy();
+      gsap.ticker.remove((time) => {
+        lenis.raf(time * 1000);
+      });
+    };
+  }, []);
+
   return (
     <div className="flex min-h-screen flex-col bg-[#000000] landing-page selection:bg-[#FF0000] selection:text-white">
       <Nav />
