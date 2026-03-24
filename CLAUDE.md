@@ -18,9 +18,9 @@ quantum-entangl/              # Repo root
 │   ├── app/                   # Pages: landing (/), login (/login), chat (/chat)
 │   ├── components/
 │   │   ├── chat/              # ChatHeader, MessageList, MessageInput, Sidebar
-│   │   ├── quantum/           # QBERGauge, KeyTimeline, ProtocolCompare, EavesdropperToggle, QKDLoader, QuantumDashboard
+│   │   ├── quantum/           # QBERGauge, KeyTimeline, ProtocolCompare, EavesdropperToggle, QuantumDashboard
 │   │   └── ui/                # 55 shadcn v4 components
-│   ├── hooks/                 # use-socket (core), use-mobile (used by shadcn sidebar only)
+│   ├── hooks/                 # use-socket.tsx (core), use-mobile.ts (shadcn sidebar only)
 │   ├── lib/                   # encryption.ts, socket.ts, store.ts, types.ts, utils.ts
 │   └── types/                 # aes-js.d.ts
 └── backend/                   # Python FastAPI + Socket.IO server
@@ -28,7 +28,7 @@ quantum-entangl/              # Repo root
     └── app/
         ├── server.py          # FastAPI + Socket.IO ASGI setup, /api/health
         ├── api/               # Empty — no REST routes beyond health check
-        ├── ws/                # handler.py (13 events), rooms.py (state), key_distribution.py (RSA-OAEP)
+        ├── ws/                # handler.py (16 events), rooms.py (state), key_distribution.py (RSA-OAEP)
         ├── qkd/               # engine.py, bell_state.py, bb84.py, e91.py, ghz.py
         └── models/            # schemas.py (Pydantic — documentation only, not enforced at runtime)
 ```
@@ -44,17 +44,19 @@ python main.py                     # or: uvicorn main:app --port 8000 --reload
 - **Frontend**: Next.js 16.1.6 App Router, no `src/` directory. Files at `app/`, `components/`, `lib/`, `hooks/` directly under `frontend/`.
 - **Backend**: Single FastAPI server wrapped with `socketio.ASGIApp(sio, fastapi_app)` for combined REST + WebSocket.
 - **Communication**: Socket.IO between frontend (`socket.io-client`) and backend (`python-socketio` async ASGI mode).
-- **Encryption**: RSA-2048 (node-forge, browser-side key pairs) + AES-128-CTR (aes-js) for messages. QKD generates the AES key.
+- **Encryption**: RSA-2048 (node-forge, browser-side key pairs) + AES-256-CTR (aes-js) for messages. QKD generates the AES key.
 - **State**: Zustand for frontend state. No database — in-memory server state, client-side message storage.
-- **QKD**: 4 protocols (Bell State T22, BB84, E91, GHZ) via Qiskit `qasm_simulator`. Iterative 128-bit key generation with QBER threshold enforcement.
+- **QKD**: 4 protocols (Bell State T22, BB84, E91, GHZ) via Qiskit `qasm_simulator`. Iterative 256-bit key generation with QBER threshold enforcement.
 
 ## Key Technical Constraints
 
 ### Frontend
 - **Tailwind v4**: CSS-based config in `app/globals.css` — there is no `tailwind.config.ts` file.
 - **shadcn v4**: Style is `radix-vega`, 55 components pre-installed in `components/ui/`. Path alias `@/*` maps to project root.
-- **Encryption runs client-side**: RSA keygen and AES encrypt/decrypt happen in the browser using `node-forge` and `aes-js`.
+- **Encryption runs client-side**: RSA keygen and AES encrypt/decrypt happen in the browser using `node-forge` and `aes-js`. Uses `TextEncoder`/`TextDecoder` for proper UTF-8 (not `aesjs.utils.utf8`).
 - **Three-column layout**: Sidebar (w-64) | Chat (flex-1) | Quantum Dashboard (w-80). Not responsive — no mobile layout.
+- **use-socket is .tsx**: The socket hook (`hooks/use-socket.tsx`) uses JSX for custom toast notifications.
+- **No test files**: Tests were removed. No `__tests__/`, `vitest.config.ts`, `pytest.ini`, or `backend/tests/`.
 
 ### Backend
 - **Qiskit 1.0+ APIs only**: `from qiskit_aer import Aer`, `transpile()` + `backend.run()` — never use deprecated `execute()`.
@@ -62,6 +64,15 @@ python main.py                     # or: uvicorn main:app --port 8000 --reload
 - **RSA-OAEP uses SHA-256** for both hash and MGF1.
 - **All state is in-memory**: No database or file persistence.
 - **Pydantic schemas are documentation-only**: Socket.IO handlers use `data.get()` directly, not schema validation.
+
+### QKD Engine Parameters
+| Parameter | bell_state | bb84 | e91 | ghz |
+|-----------|-----------|------|-----|-----|
+| Round size | 128 | 64 | 256 | 64 |
+| QBER threshold | 0.15 | 0.08 | 0.08 | 0.08 |
+| Shots/circuit | 128 | 1 | per-combo | 1 |
+| Key length | 256-bit (all protocols) |
+| Relative speed | ~3.4s | ~0.9s (fastest) | ~4.8s | ~24s (slowest, no batching) |
 
 ### Socket.IO Integration
 ```python
@@ -74,7 +85,7 @@ app = socketio.ASGIApp(sio, fastapi_app)
 
 ## Socket.IO Events
 
-### Client → Server (11 custom events + 2 lifecycle)
+### Client → Server (14 custom events + 2 lifecycle)
 
 | Event | Payload | Description |
 |-------|---------|-------------|
@@ -84,6 +95,8 @@ app = socketio.ASGIApp(sio, fastapi_app)
 | `create_room` | `{ roomName, members[], protocol }` | Create a chat room + trigger QKD |
 | `join_room` | `{ roomId }` | Join existing room |
 | `leave_room` | `{ roomId }` | Leave a room |
+| `delete_room` | `{ roomId }` | Delete room, notify all members |
+| `edit_room` | `{ roomId, roomName }` | Rename a room |
 | `message` | `{ roomId, content, encrypted, timestamp, messageId }` | Send encrypted message |
 | `typing` | `{ roomId, typing }` | Typing indicator |
 | `toggle_eavesdropper` | `{ roomId, enabled }` | Toggle Eve for next keygen |
@@ -91,17 +104,18 @@ app = socketio.ASGIApp(sio, fastapi_app)
 | `mark_message_read` | `{ roomId, messageId, timestamp }` | Mark message as read |
 | `file_start_transfer` | `{ roomId, attachmentId, attachmentName, attachmentType, attachmentSize }` | Start file transfer |
 | `file_chunk` | `{ roomId, attachmentId, chunkIndex, totalChunks, encryptedChunk }` | Send file chunk |
+| `update_profile` | `{ bio?, status? }` | Update user profile |
 
-**Implemented:** `update_profile` handler exists in `handler.py` at line 372.
-
-### Server → Client (17 distinct events)
+### Server → Client (19 distinct events)
 
 | Event | Payload | Description |
 |-------|---------|-------------|
 | `registered` | `{ success, onlineUsers[] }` | Registration confirmed |
 | `user_online` / `user_offline` | `{ nickname }` | Presence updates |
 | `room_created` | `{ roomId, roomName, members[], protocol }` | Room created |
-| `member_joined` / `member_left` | `{ roomId, nickname }` | Room membership changes |
+| `room_updated` | `{ roomId, roomName }` | Room renamed |
+| `room_deleted` | `{ roomId }` | Room deleted |
+| `member_joined` / `member_left` | `{ roomId, nickname, members[] }` | Room membership changes |
 | `key_exchange` | `{ roomId, encryptedKey, protocol, qber, timeTaken }` | RSA-encrypted symmetric key |
 | `key_rejected` | `{ roomId, qber, reason, protocol }` | Key rejected (high QBER) |
 | `rekey_started` | `{ roomId }` | Key generation started |
@@ -113,7 +127,7 @@ app = socketio.ASGIApp(sio, fastapi_app)
 | `file_available` | `{ roomId, attachmentId, attachmentName, attachmentType, attachmentSize, sender }` | File ready |
 | `file_chunk` | chunk data | File transfer relay |
 | `file_error` | `{ error }` | File transfer error |
-| `error` | `{ message }` | General error (validation, room not found, etc.) |
+| `error` | `{ message }` | General error |
 
 ## Known Issues & Tech Debt
 
@@ -124,14 +138,18 @@ app = socketio.ASGIApp(sio, fastapi_app)
 
 ### Open
 - **Pydantic schemas not enforced**: `schemas.py` defines models but handlers use `data.get()` — no runtime validation.
+- **GHZ no circuit batching**: `ghz.py` transpiles/runs one circuit per trial (no batching), making it ~25x slower than BB84.
 
 ### Implementation Notes (non-obvious details)
 - **AES-CTR format**: Each encrypted message is `nonce:ciphertext` (random nonce per message)
-- **Key transmission**: Backend sends 16 raw bytes via RSA-OAEP; frontend converts to 128-bit binary string for AES
-- **Bell State verification**: Fidelity-based — measures fraction of shots yielding |0000⟩, threshold 0.5 separates matches from noise
+- **Key transmission**: Backend sends 32 raw bytes via RSA-OAEP; frontend converts to 256-bit binary string for AES
+- **binaryKeyToBytes** is dynamic: supports both 128-bit and 256-bit keys based on string length
+- **Bell State verification**: Fidelity-based — measures fraction of shots yielding |0000⟩ (128 shots), threshold 0.5 separates matches from noise
 - **E91 singlet state**: Anti-correlated measurements (`alice != bob` means match, not `==`)
-- **Circuit batching**: All QKD protocols batch-transpile and run circuits in a single call for performance
+- **Circuit batching**: Bell State, BB84, E91 batch-transpile circuits. GHZ does not (per-trial transpile).
 - **create_room**: Filters out offline members; requires at least 2 online members
 - **Max-rounds guard**: `engine.py` caps iterations at `key_length * 2` to prevent infinite loops
 - **Timestamps**: Seconds (not milliseconds) — `Math.floor(Date.now() / 1000)`
-- Full fix history is in `issues.md`
+- **Sidebar room actions**: Hover reveals ellipsis menu with Rename/Delete. Uses `<div role="button">` (not nested `<button>`) to avoid hydration errors. Click-outside closes menu.
+- **Key exchange toasts**: Custom JSX toasts in `use-socket.tsx` (not default sonner toasts). Shows protocol, QBER, time for success; protocol, QBER for rejection.
+- **Landing page QKD animation**: Slow looping animation in `app/page.tsx` showing 6 QKD steps with 2.5s per step.

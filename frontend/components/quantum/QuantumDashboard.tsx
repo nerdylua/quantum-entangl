@@ -9,7 +9,6 @@ import { QBERGauge } from "./QBERGauge";
 import { KeyTimeline } from "./KeyTimeline";
 import { EavesdropperToggle } from "./EavesdropperToggle";
 import { ProtocolCompare } from "./ProtocolCompare";
-import { QKDLoader } from "./QKDLoader";
 
 function protocolLabel(protocol: string): string {
   const labels: Record<string, string> = {
@@ -66,9 +65,6 @@ export function QuantumDashboard() {
                   )}
                 </div>
               </div>
-
-              {/* QKD Loader animation */}
-              <QKDLoader active={activeQKD.isGenerating} />
 
               {/* QBER Gauge */}
               <QBERGauge qber={activeQKD.qber} />
