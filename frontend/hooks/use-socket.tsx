@@ -144,17 +144,46 @@ export function useSocket() {
               timestamp: Date.now(),
               protocol: data.protocol,
               qber: data.qber,
-              keyLength: 128,
+              keyLength: 256,
               status: "accepted" as const,
               timeTaken: data.timeTaken,
             },
           ],
         });
-        // Use unique toast ID to prevent duplicates
-        toast.success("Quantum key exchanged", {
-          id: `qkd-${data.roomId}`,
-          description: `${data.protocol.replace("_", " ").toUpperCase()} - QBER: ${(data.qber * 100).toFixed(1)}%`,
-        });
+        // Prominent key exchange notification
+        toast.custom(
+          (t) => (
+            <div className="w-[360px] rounded-xl border border-green-500/30 bg-background p-4 shadow-lg shadow-green-500/10">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/15">
+                  <span className="text-lg">🔐</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-sm">Quantum Key Exchanged</p>
+                  <p className="text-xs text-muted-foreground">Secure channel established</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2 rounded-lg bg-muted/50 p-2.5">
+                <div className="text-center">
+                  <p className="text-[10px] uppercase text-muted-foreground tracking-wider">Protocol</p>
+                  <p className="text-xs font-semibold mt-0.5">{data.protocol.replace("_", " ").toUpperCase()}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-[10px] uppercase text-muted-foreground tracking-wider">QBER</p>
+                  <p className={`text-xs font-semibold mt-0.5 ${data.qber < 0.05 ? "text-green-500" : "text-yellow-500"}`}>
+                    {(data.qber * 100).toFixed(1)}%
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-[10px] uppercase text-muted-foreground tracking-wider">Time</p>
+                  <p className="text-xs font-semibold mt-0.5">{data.timeTaken.toFixed(1)}s</p>
+                </div>
+              </div>
+              <button onClick={() => toast.dismiss(t)} className="absolute top-2 right-2 text-muted-foreground hover:text-foreground text-xs p-1">✕</button>
+            </div>
+          ),
+          { id: `qkd-${data.roomId}`, duration: 6000 },
+        );
         addEncryptionLog(`QKD key accepted (${data.protocol})`, data.roomId);
       } catch (err) {
         console.error("Failed to decrypt symmetric key:", err);
@@ -190,11 +219,33 @@ export function useSocket() {
           },
         ],
       });
-      toast.error("Eavesdropper detected!", {
-        id: `qkd-rejected-${data.roomId}`,
-        description: `QBER ${(data.qber * 100).toFixed(1)}% exceeds threshold. Key rejected, auto-rekeying...`,
-        duration: 5000,
-      });
+      toast.custom(
+        (t) => (
+          <div className="w-[360px] rounded-xl border border-red-500/30 bg-background p-4 shadow-lg shadow-red-500/10">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/15">
+                <span className="text-lg">🚨</span>
+              </div>
+              <div>
+                <p className="font-semibold text-sm text-red-500">Eavesdropper Detected!</p>
+                <p className="text-xs text-muted-foreground">Key rejected — auto-rekeying...</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2 rounded-lg bg-red-500/5 p-2.5">
+              <div className="text-center">
+                <p className="text-[10px] uppercase text-muted-foreground tracking-wider">Protocol</p>
+                <p className="text-xs font-semibold mt-0.5">{data.protocol.replace("_", " ").toUpperCase()}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-[10px] uppercase text-muted-foreground tracking-wider">QBER</p>
+                <p className="text-xs font-semibold mt-0.5 text-red-500">{(data.qber * 100).toFixed(1)}%</p>
+              </div>
+            </div>
+            <button onClick={() => toast.dismiss(t)} className="absolute top-2 right-2 text-muted-foreground hover:text-foreground text-xs p-1">✕</button>
+          </div>
+        ),
+        { id: `qkd-rejected-${data.roomId}`, duration: 8000 },
+      );
       addEncryptionLog(`Key REJECTED - Eve detected (QBER ${(data.qber * 100).toFixed(1)}%)`, data.roomId);
     });
 
