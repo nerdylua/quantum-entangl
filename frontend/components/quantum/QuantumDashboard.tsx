@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { useAppStore } from "@/lib/store";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Activity, KeyRound, ShieldX, Timer } from "lucide-react";
+import { Activity, KeyRound, ShieldX, Timer, X } from "lucide-react";
 import { QBERGauge } from "./QBERGauge";
 import { KeyTimeline } from "./KeyTimeline";
 import { EavesdropperToggle } from "./EavesdropperToggle";
@@ -21,7 +21,11 @@ function protocolLabel(protocol: string): string {
   return labels[protocol] || protocol;
 }
 
-export function QuantumDashboard() {
+interface QuantumDashboardProps {
+  onClose?: () => void;
+}
+
+export function QuantumDashboard({ onClose }: QuantumDashboardProps) {
   const activeRoomId = useAppStore((s) => s.activeRoomId);
   const qkdState = useAppStore((s) => s.qkdState);
   const rooms = useAppStore((s) => s.rooms);
@@ -52,9 +56,18 @@ export function QuantumDashboard() {
   return (
     <div className="flex h-full flex-col bg-muted/10 overflow-hidden">
       {/* Header */}
-      <div className="flex h-14 items-center gap-2 border-b px-4 shrink-0">
-        <Activity className="h-4 w-4 text-primary" />
-        <h3 className="font-semibold text-sm">Quantum Dashboard</h3>
+      <div className="flex h-14 items-center justify-between border-b px-4 shrink-0">
+        <div className="flex items-center gap-2">
+          <Activity className="h-4 w-4 text-primary" />
+          <h3 className="font-semibold text-sm">Quantum Dashboard</h3>
+        </div>
+        <button
+          onClick={onClose}
+          className="lg:hidden p-1 rounded hover:bg-accent transition-colors"
+          aria-label="Close quantum dashboard"
+        >
+          <X className="h-4 w-4" />
+        </button>
       </div>
 
       {/* Content - min-h-0 is crucial for flex scroll */}

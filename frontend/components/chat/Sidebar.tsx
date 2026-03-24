@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Circle, MessageSquare, Shield, Users, FileKey, MoreHorizontal, Pencil, Trash2, Check, X } from "lucide-react";
+import { Plus, Circle, MessageSquare, Shield, Users, FileKey, MoreHorizontal, Pencil, Trash2, Check, X, ChevronLeft } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 const PROTOCOLS = [
@@ -32,7 +32,11 @@ const PROTOCOLS = [
   { value: "e91", label: "E91", description: "Entanglement-based" },
 ] as const;
 
-export function Sidebar() {
+interface SidebarProps {
+  onClose?: () => void;
+}
+
+export function Sidebar({ onClose }: SidebarProps) {
   const rooms = useAppStore((s) => s.rooms);
   const activeRoomId = useAppStore((s) => s.activeRoomId);
   const setActiveRoom = useAppStore((s) => s.setActiveRoom);
@@ -111,7 +115,16 @@ export function Sidebar() {
     <div className="flex h-full flex-col">
       {/* Header */}
       <div className="flex h-14 items-center justify-between px-4 border-b shrink-0">
-        <h2 className="text-lg font-semibold">Chats</h2>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onClose}
+            className="lg:hidden p-1 rounded hover:bg-accent transition-colors"
+            aria-label="Close sidebar"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <h2 className="text-lg font-semibold">Chats</h2>
+        </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button variant="outline" size="sm" className="gap-1.5">
@@ -222,8 +235,8 @@ export function Sidebar() {
                     <div
                       role="button"
                       tabIndex={0}
-                      onClick={() => setActiveRoom(room.roomId)}
-                      onKeyDown={(e) => { if (e.key === "Enter") setActiveRoom(room.roomId); }}
+                      onClick={() => { setActiveRoom(room.roomId); onClose?.(); }}
+                      onKeyDown={(e) => { if (e.key === "Enter") { setActiveRoom(room.roomId); onClose?.(); } }}
                       className={`w-full rounded-lg px-3 py-2.5 text-left transition-colors cursor-pointer ${
                         isActive
                           ? "bg-accent text-accent-foreground"

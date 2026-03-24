@@ -150,13 +150,13 @@ export default function LandingPage() {
       </header>
 
       {/* Hero */}
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-16">
+      <main className="flex-1 flex flex-col items-center justify-center px-4 py-12 sm:py-16">
         <div className="max-w-3xl text-center space-y-6">
           <Badge variant="secondary" className="text-xs">
             Powered by Quantum Key Distribution
           </Badge>
 
-          <h1 className="text-5xl sm:text-6xl font-bold tracking-tight leading-tight">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-tight">
             Quantum-Secured{" "}
             <span className="text-primary">Multi-Party Chat</span>
           </h1>
@@ -167,7 +167,7 @@ export default function LandingPage() {
             unbreakable encryption.
           </p>
 
-          <div className="flex items-center justify-center gap-3 pt-2">
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             <Button size="lg" onClick={() => router.push("/login")} className="gap-2">
               Start Chatting
               <ArrowRight className="h-4 w-4" />

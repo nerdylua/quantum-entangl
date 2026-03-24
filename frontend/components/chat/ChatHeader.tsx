@@ -10,7 +10,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useTheme } from "next-themes";
-import { Moon, Sun, Users, Shield, Lock, Unlock } from "lucide-react";
+import { Moon, Sun, Users, Shield, Lock, Unlock, Menu, Activity } from "lucide-react";
 
 const PROTOCOL_LABELS: Record<string, string> = {
   bell_state: "Bell State (T22)",
@@ -19,7 +19,13 @@ const PROTOCOL_LABELS: Record<string, string> = {
   ghz: "GHZ Multi-Party",
 };
 
-export function ChatHeader() {
+interface ChatHeaderProps {
+  onSidebarToggle?: () => void;
+  onQuantumToggle?: () => void;
+  quantumOpen?: boolean;
+}
+
+export function ChatHeader({ onSidebarToggle, onQuantumToggle, quantumOpen }: ChatHeaderProps) {
   const rooms = useAppStore((s) => s.rooms);
   const activeRoomId = useAppStore((s) => s.activeRoomId);
   const roomKeys = useAppStore((s) => s.roomKeys);
@@ -30,19 +36,43 @@ export function ChatHeader() {
 
   if (!activeRoom) {
     return (
-      <div className="flex h-14 shrink-0 items-center justify-between border-b px-4">
-        <span className="text-muted-foreground">Select a room to start chatting</span>
+      <div className="flex h-14 shrink-0 items-center justify-between border-b px-3 gap-2">
+        {/* Mobile hamburger */}
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          className="lg:hidden shrink-0"
+          onClick={onSidebarToggle}
+          aria-label="Open sidebar"
         >
-          {theme === "dark" ? (
-            <Sun className="h-4 w-4" />
-          ) : (
-            <Moon className="h-4 w-4" />
-          )}
+          <Menu className="h-4 w-4" />
         </Button>
+
+        <span className="text-muted-foreground text-sm flex-1">Select a room to start chatting</span>
+
+        <div className="flex items-center gap-1">
+          {/* Mobile quantum toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            onClick={onQuantumToggle}
+            aria-label="Toggle quantum dashboard"
+          >
+            <Activity className={`h-4 w-4 ${quantumOpen ? "text-primary" : ""}`} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          >
+            {theme === "dark" ? (
+              <Sun className="h-4 w-4" />
+            ) : (
+              <Moon className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
       </div>
     );
   }
@@ -50,17 +80,28 @@ export function ChatHeader() {
   const protocolLabel = PROTOCOL_LABELS[activeRoom.protocol] || activeRoom.protocol;
 
   return (
-    <div className="flex h-14 shrink-0 items-center justify-between border-b px-4">
-      <div className="flex items-center gap-3 min-w-0">
+    <div className="flex h-14 shrink-0 items-center justify-between border-b px-3 gap-2">
+      <div className="flex items-center gap-2 min-w-0">
+        {/* Mobile hamburger */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="lg:hidden shrink-0"
+          onClick={onSidebarToggle}
+          aria-label="Open sidebar"
+        >
+          <Menu className="h-4 w-4" />
+        </Button>
+
         <h2 className="font-semibold truncate">{activeRoom.roomName}</h2>
-        <Badge variant="outline" className="gap-1 shrink-0">
+        <Badge variant="outline" className="gap-1 shrink-0 hidden sm:flex">
           <Shield className="h-3 w-3" />
           {protocolLabel}
         </Badge>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="flex items-center gap-1 text-xs text-muted-foreground shrink-0 cursor-default">
+              <span className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground shrink-0 cursor-default">
                 <Users className="h-3 w-3" />
                 {activeRoom.members.length}
               </span>
@@ -80,17 +121,29 @@ export function ChatHeader() {
         )}
       </div>
 
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      >
-        {theme === "dark" ? (
-          <Sun className="h-4 w-4" />
-        ) : (
-          <Moon className="h-4 w-4" />
-        )}
-      </Button>
+      <div className="flex items-center gap-1 shrink-0">
+        {/* Mobile quantum toggle */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="lg:hidden"
+          onClick={onQuantumToggle}
+          aria-label="Toggle quantum dashboard"
+        >
+          <Activity className={`h-4 w-4 ${quantumOpen ? "text-primary" : ""}`} />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+        >
+          {theme === "dark" ? (
+            <Sun className="h-4 w-4" />
+          ) : (
+            <Moon className="h-4 w-4" />
+          )}
+        </Button>
+      </div>
     </div>
   );
 }
