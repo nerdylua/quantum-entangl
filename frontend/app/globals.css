@@ -12,7 +12,7 @@ html {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-mono: var(--font-mono-code);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,6 +49,19 @@ html {
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Landing page design tokens */
+  --color-laser-red: #FF0000;
+  --color-surface-lowest: #0e0e0e;
+  --color-surface-low: #1b1b1b;
+  --color-surface-container: #1f1f1f;
+  --color-surface-high: #2a2a2a;
+  --color-surface-highest: #353535;
+  --color-outline-variant: #474747;
+  --color-on-surface: #e2e2e2;
+  --color-on-surface-variant: #c6c6c6;
+  --color-outline: #919191;
+  --font-headline: var(--font-headline);
 }
 
 :root {
@@ -132,9 +145,74 @@ html {
   }
 }
 
-/* Override Radix ScrollArea's internal display:table wrapper.
-   display:table lets content expand the wrapper beyond the viewport
-   width, causing horizontal clipping in fixed-width panels. */
+/* Override Radix ScrollArea's internal display:table wrapper. */
 [data-radix-scroll-area-viewport] > div {
   display: block !important;
+}
+
+/* ─── Landing page utilities ─── */
+
+.landing-page {
+  background-color: #000000;
+  color: #ffffff;
+  font-family: var(--font-sans);
+}
+
+.landing-page ::selection {
+  background-color: #FF0000;
+  color: #ffffff;
+}
+
+.tight-tracking {
+  letter-spacing: -0.05em;
+}
+
+.grid-mask {
+  background-image: radial-gradient(#222 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Scanline overlay effect for hero */
+.scanlines::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Photon particle keyframes for intercept-resend */
+@keyframes photon-travel {
+  0% { transform: translateX(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateX(var(--travel-distance)); opacity: 0; }
+}
+
+@keyframes pulse-red {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.4); }
+  50% { box-shadow: 0 0 20px 10px rgba(255, 0, 0, 0.1); }
+}
+
+@keyframes counter-glow {
+  0%, 100% { text-shadow: 0 0 10px rgba(255, 0, 0, 0.3); }
+  50% { text-shadow: 0 0 30px rgba(255, 0, 0, 0.6); }
+}
+
+/* Number counter animation class */
+.counter-animate {
+  animation: counter-glow 2s ease-in-out infinite;
+}
+
+/* Smooth reveal for GSAP targets */
+.gsap-reveal {
+  opacity: 0;
+  transform: translateY(40px);
 }

@@ -1,26 +1,28 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Space_Grotesk, JetBrains_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-headline",
+  weight: ["300", "400", "700"],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono-code",
+  weight: ["400", "700"],
+});
+
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "Entangl",
+  title: "Entangl — Quantum-Secured Multi-Party Chat",
   description:
-    "Quantum-secured multi-party chat with live eavesdropper detection using QKD",
+    "Generate cryptographic keys using real quantum protocols. Detect eavesdroppers in real-time. Communicate with unbreakable encryption powered by photon entanglement.",
 };
 
 export default function RootLayout({
@@ -29,10 +31,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("font-sans", inter.variable)} suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    <html
+      lang="en"
+      className={cn(
+        "font-sans",
+        inter.variable,
+        spaceGrotesk.variable,
+        jetbrainsMono.variable
+      )}
+      suppressHydrationWarning
+    >
+      <body className="antialiased">
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
