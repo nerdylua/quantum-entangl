@@ -93,12 +93,6 @@ function Hero() {
 
         {/* Left: Text Content */}
         <div className="w-full md:w-1/2 flex flex-col">
-          <div className="hero-status font-mono text-[9px] md:text-[10px] tracking-widest mb-6 flex flex-wrap gap-4 md:gap-8 border-b border-[#474747] pb-3 w-fit">
-            <span className="text-[#919191]">LATENCY: 0.0004MS</span>
-            <span className="text-[#FF0000] animate-pulse">ENTANGLEMENT_ACTIVE</span>
-            <span className="text-[#c6c6c6] opacity-50">[ SYSTEM: SECURE ]</span>
-          </div>
-
           <h1 className="font-headline font-bold text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] leading-[1] tight-tracking uppercase mb-8 flex flex-col items-start w-full">
             <div className="hero-title-line overflow-visible text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] pb-1">
               QUANTUM
