@@ -25,27 +25,11 @@ Built with Next.js 16, React 19, FastAPI, Socket.IO, and IBM Qiskit.
 
 ## Features
 
-### Core
-
 - **Quantum Key Distribution** — 4 QKD protocols (BB84, Bell State T22, E91, GHZ) generate 256-bit symmetric keys via Qiskit quantum circuit simulation
 - **End-to-End Encryption** — Messages encrypted with AES-256-CTR using QKD-derived keys; key exchange protected by RSA-2048 OAEP
 - **Real-Time Chat** — Socket.IO bidirectional communication with typing indicators, online presence, and instant message delivery
 - **Multi-Party Rooms** — Create rooms with 2+ members; GHZ protocol auto-selected for 3+ party quantum key agreement
 - **Eavesdropper Detection** — Toggle a simulated Eve to inject measurement attacks into the quantum channel; watch QBER spike and keys get rejected in real time
-
-### Bonus Features
-
-- **Read Receipts** — WhatsApp-style single check (sent), double check (read by some), blue double check (read by all)
-- **Encrypted File Sharing** — Upload images, PDFs, documents (up to 5 MB) encrypted with the room's QKD-derived key, transferred in 64 KB chunks
-- **User Profiles** — Avatar generation from nickname (deterministic color via SHA-256 hash), editable bio and status
-
-### UI/UX
-
-- **Quantum Dashboard** — Live QBER gauge, key exchange timeline, protocol comparison charts, eavesdropper controls
-- **Cyberpunk Landing Page** — GSAP scroll animations, grid-mask patterns, scanline overlays, animated QKD process visualization
-- **Dark/Light Theme** — Toggle via next-themes with full shadcn component theming
-- **Encryption Logs** — Sidebar transparency panel showing last 10 encryption events with relative timestamps
-
 ---
 
 ## Architecture
@@ -326,12 +310,6 @@ Layer 3: AES-256-CTR Message Encryption
 - **Man-in-the-middle on classical channel** → RSA-2048 OAEP protects key transport
 - **Compromised server** → Server only sees RSA-encrypted keys and AES-encrypted messages
 - **Replay attacks** → Random nonce per message prevents ciphertext reuse
-
-### Limitations (By Design)
-
-- **No authentication** — Users self-register with any nickname; no password or identity verification
-- **No persistence** — All state (users, rooms, keys, messages) is in-memory; server restart clears everything
-- **Simulated quantum** — Uses Qiskit's `qasm_simulator`, not real quantum hardware (the security principles are demonstrated, not production-hardened)
 
 ---
 
