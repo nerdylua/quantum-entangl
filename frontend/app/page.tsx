@@ -460,6 +460,9 @@ function BruteForce() {
   const [val2, setVal2] = useState(0);
 
   useGSAP(() => {
+    const q = gsap.utils.selector(container);
+    const bars = q(".bf-bar");
+
     ScrollTrigger.create({
       trigger: container.current,
       start: "top 75%",
@@ -478,7 +481,18 @@ function BruteForce() {
           ease: "power3.out",
           onUpdate: () => setVal2(Math.floor(counter.v2))
         });
-        gsap.from(".bf-bar", { scaleX: 0, transformOrigin: "left", duration: 3, stagger: 0.3, ease: "power3.out" });
+        gsap.fromTo(
+          bars,
+          { scaleX: 0, transformOrigin: "left" },
+          { scaleX: 1, duration: 3, stagger: 0.3, ease: "power3.out", overwrite: "auto" }
+        );
+      },
+      onEnterBack: () => {
+        gsap.fromTo(
+          bars,
+          { scaleX: 0, transformOrigin: "left" },
+          { scaleX: 1, duration: 3, stagger: 0.3, ease: "power3.out", overwrite: "auto" }
+        );
       }
     });
   }, { scope: container });
