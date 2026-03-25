@@ -462,10 +462,22 @@ function BruteForce() {
   useGSAP(() => {
     const q = gsap.utils.selector(container);
     const bars = q(".bf-bar");
+    const animateBars = () =>
+      gsap.to(bars, {
+        scaleX: 1,
+        duration: 3,
+        stagger: 0.3,
+        ease: "power3.out",
+        overwrite: "auto",
+        force3D: true,
+      });
+
+    gsap.set(bars, { scaleX: 0, transformOrigin: "left", force3D: true });
 
     ScrollTrigger.create({
       trigger: container.current,
       start: "top 75%",
+      end: "bottom 25%",
       onEnter: () => {
         // Safe animated values using dummy objects to avoid direct DOM manipulation clashes
         const counter = { v1: 0, v2: 0 };
@@ -481,19 +493,17 @@ function BruteForce() {
           ease: "power3.out",
           onUpdate: () => setVal2(Math.floor(counter.v2))
         });
-        gsap.fromTo(
-          bars,
-          { scaleX: 0, transformOrigin: "left" },
-          { scaleX: 1, duration: 3, stagger: 0.3, ease: "power3.out", overwrite: "auto" }
-        );
+        animateBars();
       },
       onEnterBack: () => {
-        gsap.fromTo(
-          bars,
-          { scaleX: 0, transformOrigin: "left" },
-          { scaleX: 1, duration: 3, stagger: 0.3, ease: "power3.out", overwrite: "auto" }
-        );
-      }
+        animateBars();
+      },
+      onLeave: () => {
+        gsap.set(bars, { scaleX: 0 });
+      },
+      onLeaveBack: () => {
+        gsap.set(bars, { scaleX: 0 });
+      },
     });
   }, { scope: container });
 
