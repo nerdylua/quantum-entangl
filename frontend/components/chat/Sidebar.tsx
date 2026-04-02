@@ -165,7 +165,7 @@ export function Sidebar({ onClose }: SidebarProps) {
                   placeholder="e.g. Alice, Bob"
                 />
                 <p className="text-xs text-muted-foreground">
-                  You will be added automatically. Use 3+ members for GHZ protocol.
+                  You will be added automatically. Use 3+ members for CASQKA protocol.
                 </p>
               </div>
               <div className="space-y-2">

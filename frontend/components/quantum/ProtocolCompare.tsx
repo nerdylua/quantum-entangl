@@ -27,7 +27,7 @@ const PROTOCOL_LABELS: Record<string, string> = {
   bell_state: "Bell State",
   bb84: "BB84",
   e91: "E91",
-  ghz: "GHZ",
+  ghz: "CASQKA",
 };
 
 export function ProtocolCompare({ events }: ProtocolCompareProps) {

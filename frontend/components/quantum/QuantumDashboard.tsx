@@ -16,7 +16,7 @@ function protocolLabel(protocol: string): string {
     bell_state: "Bell State (T22)",
     bb84: "BB84",
     e91: "E91",
-    ghz: "GHZ Multi-Party",
+    ghz: "CASQKA Multi-Party",
   };
   return labels[protocol] || protocol;
 }

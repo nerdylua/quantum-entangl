@@ -159,7 +159,7 @@ function Hero() {
 // ─── 3. QKD Process Loop Animation + Table ───
 const QKD_STEPS_PLAY = [
   { label: "Initializing quantum channel", detail: "Establishing entangled qubit pairs between parties" },
-  { label: "Generating entangled states", detail: "Creating Bell/GHZ states via quantum circuits" },
+  { label: "Generating entangled states", detail: "Creating Bell/CASQKA cluster states via quantum circuits" },
   { label: "Measuring in random bases", detail: "Alice and Bob independently choose measurement bases" },
   { label: "Sifting key bits", detail: "Discarding bits where bases didn't match" },
   { label: "Calculating QBER", detail: "Estimating error rate to detect eavesdroppers" },
