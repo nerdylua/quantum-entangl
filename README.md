@@ -34,43 +34,7 @@ Built with Next.js 16, React 19, FastAPI, Socket.IO, and IBM Qiskit.
 
 ## Architecture
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                        FRONTEND                              │
-│  Next.js 16 + React 19 + Tailwind v4 + shadcn v4             │
-│                                                              │
-│  ┌──────────┐  ┌────────────┐  ┌──────────────────────────┐  │
-│  │ Sidebar  │  │   Chat     │  │  Quantum Dashboard       │  │
-│  │ (w-64)   │  │  (flex-1)  │  │  (w-80)                  │  │
-│  │          │  │            │  │                          │  │
-│  │ Rooms    │  │ Messages   │  │ QBER Gauge               │  │
-│  │ Users    │  │ Input      │  │ Key Timeline             │  │
-│  │ Logs     │  │ Files      │  │ Protocol Compare         │  │
-│  │          │  │ Typing     │  │ Eve Toggle               │  │
-│  └──────────┘  └────────────┘  └──────────────────────────┘  │
-│                                                              │
-│  Zustand Store │ node-forge (RSA) │ aes-js (AES-256-CTR)     │
-└──────────────────────────┬───────────────────────────────────┘
-                           │ Socket.IO (WebSocket)
-                           │
-┌──────────────────────────┴───────────────────────────────────┐
-│                        BACKEND                               │
-│  FastAPI + python-socketio (ASGI)                            │
-│                                                              │
-│  ┌──────────────────┐  ┌─────────────────────────────────┐   │
-│  │  Socket.IO       │  │  QKD Engine                     │   │
-│  │  Handler         │  │  (asyncio.to_thread)            │   │
-│  │                  │  │                                 │   │
-│  │  16 events       │  │  BB84 │ Bell State │ E91 │ GHZ  │   │
-│  │  Room management │  │  Qiskit qasm_simulator          │   │
-│  │  Message relay   │  │                                 │   │
-│  │  File transfer   │  │  Iterative 256-bit key gen      │   │
-│  │  Presence        │  │  QBER threshold enforcement     │   │
-│  └──────────────────┘  └─────────────────────────────────┘   │
-│                                                              │
-│  RSA-OAEP (SHA-256) key distribution │ In-memory state       │
-└──────────────────────────────────────────────────────────────┘
-```
+![Entangl system architecture — browser (Next.js), Socket.IO, FastAPI server, QKD engine, and cryptography layers](static/entangl-architecture.png)
 
 **Data Flow for Sending a Message:**
 
