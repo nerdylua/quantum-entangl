@@ -410,13 +410,6 @@ The right panel provides real-time visibility into quantum security operations:
 ```
 quantum-entangl/
 ├── README.md
-├── CLAUDE.md                          # Dev guidance for Claude Code
-├── static/                            # Screenshots and reports
-│   ├── chatapp-frontend.png
-│   ├── quantum-chat-architecture.jpg
-│   ├── quantum-chat-landing.jpg
-│   └── report/                        # Project reports (PDF)
-│
 ├── frontend/                          # Next.js 16 App Router
 │   ├── app/
 │   │   ├── page.tsx                   # Landing page (GSAP animations, QKD visualization)
