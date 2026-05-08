@@ -5,6 +5,13 @@ import { getSocket } from "@/lib/socket";
 import { Button } from "@/components/ui/button";
 import { ShieldAlert, RefreshCw, AlertTriangle } from "lucide-react";
 
+const PROTOCOL_LABELS: Record<string, string> = {
+  bell_state: "Bell State (T22)",
+  bb84: "BB84",
+  e91: "E91",
+  ghz: "CASQKA Multi-Party",
+};
+
 export function CompromisedBanner() {
   const activeRoomId = useAppStore((s) => s.activeRoomId);
   const qkdState = useAppStore((s) => s.qkdState);
@@ -17,6 +24,8 @@ export function CompromisedBanner() {
   const details = activeQKD.compromisedDetails;
   const qberPct = (details.qber * 100).toFixed(1);
   const thresholdPct = (details.threshold * 100).toFixed(0);
+  const protocolLabel =
+    PROTOCOL_LABELS[details.protocol] || details.protocol.replace("_", " ").toUpperCase();
 
   const handleSecureChannel = () => {
     if (!activeRoomId) return;
@@ -49,9 +58,7 @@ export function CompromisedBanner() {
           The Quantum Bit Error Rate (QBER) measured{" "}
           <span className="font-semibold text-destructive">{qberPct}%</span>,
           exceeding the {thresholdPct}% security threshold for{" "}
-          <span className="font-medium">
-            {details.protocol.replace("_", " ").toUpperCase()}
-          </span>
+          <span className="font-medium">{protocolLabel}</span>
           .
         </p>
         <p>

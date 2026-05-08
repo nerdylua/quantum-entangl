@@ -32,6 +32,13 @@ const PROTOCOLS = [
   { value: "e91", label: "E91", description: "Entanglement-based" },
 ] as const;
 
+const PROTOCOL_LABELS: Record<string, string> = {
+  bell_state: "Bell State (T22)",
+  bb84: "BB84",
+  e91: "E91",
+  ghz: "CASQKA Multi-Party",
+};
+
 interface SidebarProps {
   onClose?: () => void;
 }
@@ -249,7 +256,7 @@ export function Sidebar({ onClose }: SidebarProps) {
                       </div>
                       <div className="mt-1.5 flex items-center gap-1.5 ml-6">
                         <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                          {room.protocol.replace("_", " ")}
+                          {PROTOCOL_LABELS[room.protocol] || room.protocol.replace("_", " ")}
                         </Badge>
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <Users className="h-3 w-3" />
