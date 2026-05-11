@@ -13,7 +13,7 @@ Built with Next.js 16, React 19, FastAPI, Socket.IO, and IBM Qiskit.
   - [BB84](#bb84-protocol)
   - [Bell State (T22)](#bell-state-t22-protocol)
   - [E91](#e91-protocol)
-  - [GHZ (Multi-Party)](#ghz-multi-party-protocol)
+  - [CASQKA (Multi-Party)](#casqka-multi-party-protocol)
 - [Security Model](#security-model)
 - [Eavesdropper Simulation](#eavesdropper-simulation)
 - [Quantum Dashboard](#quantum-dashboard)
@@ -25,10 +25,10 @@ Built with Next.js 16, React 19, FastAPI, Socket.IO, and IBM Qiskit.
 
 ## Features
 
-- **Quantum Key Distribution** — 4 QKD protocols (BB84, Bell State T22, E91, GHZ) generate 256-bit symmetric keys via Qiskit quantum circuit simulation
+- **Quantum Key Distribution** — 4 QKD protocols (BB84, Bell State T22, E91, CASQKA) generate 256-bit symmetric keys via Qiskit quantum circuit simulation
 - **End-to-End Encryption** — Messages encrypted with AES-256-CTR using QKD-derived keys; key exchange protected by RSA-2048 OAEP
 - **Real-Time Chat** — Socket.IO bidirectional communication with typing indicators, online presence, and instant message delivery
-- **Multi-Party Rooms** — Create rooms with 2+ members; GHZ protocol auto-selected for 3+ party quantum key agreement
+- **Multi-Party Rooms** — Create rooms with 2+ members; CASQKA protocol auto-selected for 3+ party quantum key agreement
 - **Eavesdropper Detection** — Toggle a simulated Eve to inject measurement attacks into the quantum channel; watch QBER spike and keys get rejected in real time
 ---
 
@@ -121,7 +121,7 @@ All protocols generate **256-bit symmetric keys** through iterative rounds of qu
 | **BB84** | ~0.9s | 8% | 64 qubits | ~50% | 2 | Yes |
 | **Bell State** | ~3.4s | 15% | 128 trials | ~8.3% | 2 | Yes |
 | **E91** | ~4.8s | 8% | 256 combos | ~22% | 2 | Yes |
-| **GHZ** | ~24s | 8% | 64 trials | Variable | 3+ | No |
+| **CASQKA** | ~24s | 8% | 64 trials | Variable | 3+ | No |
 
 ---
 
@@ -208,15 +208,15 @@ The singlet state's perfect anti-correlation is fragile. Eve's intercept-resend 
 
 ---
 
-### GHZ Multi-Party Protocol
+### CASQKA Multi-Party Protocol
 
 The only protocol supporting **3+ party** key agreement, using Greenberger-Horne-Zeilinger entangled states.
 
 **How it works:**
 
-1. **GHZ State** — Creates an N-qubit maximally entangled state:
+1. **CASQKA State** — Creates an N-qubit maximally entangled state:
    ```
-   |GHZ_N⟩ = (|00...0⟩ + |11...1⟩) / √2
+   |CASQKA_N⟩ = (|00...0⟩ + |11...1⟩) / √2
    ```
    All qubits are perfectly correlated — measuring any one collapses all others to the same value.
 
@@ -228,11 +228,11 @@ The only protocol supporting **3+ party** key agreement, using Greenberger-Horne
 
 **Why it's secure:**
 
-Eve's measurement on any single qubit in the GHZ chain breaks the N-party correlation. Even a single-qubit eavesdrop introduces detectable errors across the entire group.
+Eve's measurement on any single qubit in the CASQKA chain breaks the N-party correlation. Even a single-qubit eavesdrop introduces detectable errors across the entire group.
 
-**Performance note:** GHZ is ~25x slower than BB84 because it transpiles and runs each circuit individually (no batching). This is a known limitation — each of 64 trials requires a separate transpile + simulate cycle.
+**Performance note:** CASQKA is ~25x slower than BB84 because it transpiles and runs each circuit individually (no batching). This is a known limitation — each of 64 trials requires a separate transpile + simulate cycle.
 
-**Auto-selection:** When creating a room with 3+ members, the backend automatically selects GHZ regardless of the user's protocol choice.
+**Auto-selection:** When creating a room with 3+ members, the backend automatically selects CASQKA regardless of the user's protocol choice.
 
 ---
 
@@ -288,7 +288,7 @@ The eavesdropper (Eve) toggle in the Quantum Dashboard injects a **measurement a
 | **BB84** | Measures each qubit in a random basis, re-sends | ~25% QBER (threshold: 8%) |
 | **Bell State** | Measures random qubits, causing decoherence | ~78% QBER (threshold: 15%) |
 | **E91** | Intercept-resend on Bob's qubit | ~25% QBER (threshold: 8%) |
-| **GHZ** | Measures one random qubit in the GHZ chain | ~12.5% QBER (threshold: 8%) |
+| **CASQKA** | Measures one random qubit in the CASQKA chain | ~12.5% QBER (threshold: 8%) |
 
 ### Detection Flow
 
@@ -422,7 +422,7 @@ quantum-entangl/
         │   ├── bb84.py                # BB84 single-qubit protocol
         │   ├── bell_state.py          # Bell State T22 entangled 4-qubit protocol
         │   ├── e91.py                 # E91 singlet-state protocol
-        │   └── ghz.py                 # GHZ multi-party entanglement protocol
+        │   └── casqka.py              # CASQKA multi-party entanglement protocol
         └── models/
             └── schemas.py             # Pydantic schemas (documentation only)
 ```

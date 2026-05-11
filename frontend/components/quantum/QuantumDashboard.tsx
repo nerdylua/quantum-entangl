@@ -10,16 +10,7 @@ import { KeyTimeline } from "./KeyTimeline";
 import { EavesdropperToggle } from "./EavesdropperToggle";
 import { CompromisedBanner } from "./CompromisedBanner";
 import { ProtocolCompare } from "./ProtocolCompare";
-
-function protocolLabel(protocol: string): string {
-  const labels: Record<string, string> = {
-    bell_state: "Bell State (T22)",
-    bb84: "BB84",
-    e91: "E91",
-    ghz: "CASQKA Multi-Party",
-  };
-  return labels[protocol] || protocol;
-}
+import { getProtocolLabel } from "@/lib/protocol";
 
 interface QuantumDashboardProps {
   onClose?: () => void;
@@ -83,7 +74,7 @@ export function QuantumDashboard({ onClose }: QuantumDashboardProps) {
                 </p>
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className="text-xs">
-                    {protocolLabel(activeQKD.protocol)}
+                    {getProtocolLabel(activeQKD.protocol)}
                   </Badge>
                   {activeRoom && (
                     <span className="text-xs text-muted-foreground">

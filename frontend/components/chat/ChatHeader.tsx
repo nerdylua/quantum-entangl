@@ -11,13 +11,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useTheme } from "next-themes";
 import { Moon, Sun, Users, Shield, Lock, Unlock, Menu, Activity } from "lucide-react";
-
-const PROTOCOL_LABELS: Record<string, string> = {
-  bell_state: "Bell State (T22)",
-  bb84: "BB84",
-  e91: "E91",
-  ghz: "CASQKA Multi-Party",
-};
+import { getProtocolLabel } from "@/lib/protocol";
 
 interface ChatHeaderProps {
   onSidebarToggle?: () => void;
@@ -75,7 +69,7 @@ export function ChatHeader({ onSidebarToggle, onQuantumToggle, quantumOpen }: Ch
     );
   }
 
-  const protocolLabel = PROTOCOL_LABELS[activeRoom.protocol] || activeRoom.protocol;
+  const protocolLabel = getProtocolLabel(activeRoom.protocol);
 
   return (
     <div className="flex h-14 shrink-0 items-center justify-between border-b px-3 gap-2">

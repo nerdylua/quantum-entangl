@@ -11,24 +11,11 @@ import {
   Cell,
 } from "recharts";
 import type { QKDEvent } from "@/lib/types";
+import { getProtocolColor, getProtocolLabel, normalizeProtocol } from "@/lib/protocol";
 
 interface ProtocolCompareProps {
   events: QKDEvent[];
 }
-
-const PROTOCOL_COLORS: Record<string, string> = {
-  bell_state: "hsl(259, 67%, 59%)",
-  bb84: "hsl(199, 89%, 48%)",
-  e91: "hsl(142, 76%, 46%)",
-  ghz: "hsl(25, 95%, 53%)",
-};
-
-const PROTOCOL_LABELS: Record<string, string> = {
-  bell_state: "Bell State",
-  bb84: "BB84",
-  e91: "E91",
-  ghz: "CASQKA",
-};
 
 export function ProtocolCompare({ events }: ProtocolCompareProps) {
   const data = useMemo(() => {
@@ -41,21 +28,22 @@ export function ProtocolCompare({ events }: ProtocolCompareProps) {
     > = {};
 
     for (const ev of accepted) {
-      if (!grouped[ev.protocol]) {
-        grouped[ev.protocol] = { qberSum: 0, timeSum: 0, count: 0 };
+      const protocol = normalizeProtocol(ev.protocol);
+      if (!grouped[protocol]) {
+        grouped[protocol] = { qberSum: 0, timeSum: 0, count: 0 };
       }
-      grouped[ev.protocol].qberSum += ev.qber;
-      grouped[ev.protocol].timeSum += ev.timeTaken ?? 0;
-      grouped[ev.protocol].count += 1;
+      grouped[protocol].qberSum += ev.qber;
+      grouped[protocol].timeSum += ev.timeTaken ?? 0;
+      grouped[protocol].count += 1;
     }
 
     return Object.entries(grouped).map(([protocol, stats]) => ({
       protocol,
-      label: PROTOCOL_LABELS[protocol] || protocol,
+      label: getProtocolLabel(protocol, "compact"),
       avgQBER: Number(((stats.qberSum / stats.count) * 100).toFixed(2)),
       avgTime: Number((stats.timeSum / stats.count).toFixed(2)),
       keys: stats.count,
-      color: PROTOCOL_COLORS[protocol] || "hsl(var(--primary))",
+      color: getProtocolColor(protocol),
     }));
   }, [events]);
 

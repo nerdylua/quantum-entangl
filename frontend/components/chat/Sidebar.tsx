@@ -25,19 +25,13 @@ import {
 } from "@/components/ui/select";
 import { Plus, Circle, MessageSquare, Shield, Users, FileKey, MoreHorizontal, Pencil, Trash2, Check, X, ChevronLeft } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { getProtocolLabel } from "@/lib/protocol";
 
 const PROTOCOLS = [
   { value: "bell_state", label: "Bell State (T22)", description: "4-qubit entangled pairs" },
   { value: "bb84", label: "BB84", description: "Prepare-and-measure" },
   { value: "e91", label: "E91", description: "Entanglement-based" },
 ] as const;
-
-const PROTOCOL_LABELS: Record<string, string> = {
-  bell_state: "Bell State (T22)",
-  bb84: "BB84",
-  e91: "E91",
-  ghz: "CASQKA Multi-Party",
-};
 
 interface SidebarProps {
   onClose?: () => void;
@@ -256,7 +250,7 @@ export function Sidebar({ onClose }: SidebarProps) {
                       </div>
                       <div className="mt-1.5 flex items-center gap-1.5 ml-6">
                         <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                          {PROTOCOL_LABELS[room.protocol] || room.protocol.replace("_", " ")}
+                          {getProtocolLabel(room.protocol)}
                         </Badge>
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <Users className="h-3 w-3" />

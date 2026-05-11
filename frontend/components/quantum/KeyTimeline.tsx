@@ -5,19 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CheckCircle2, XCircle, Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { getProtocolLabel } from "@/lib/protocol";
 
 interface KeyTimelineProps {
   events: QKDEvent[];
-}
-
-function protocolLabel(protocol: string): string {
-  const labels: Record<string, string> = {
-    bell_state: "Bell State",
-    bb84: "BB84",
-    e91: "E91",
-    ghz: "CASQKA",
-  };
-  return labels[protocol] || protocol;
 }
 
 export function KeyTimeline({ events }: KeyTimelineProps) {
@@ -66,7 +57,7 @@ export function KeyTimeline({ events }: KeyTimelineProps) {
                     {event.status === "accepted" ? "Accepted" : "Rejected"}
                   </Badge>
                   <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                    {protocolLabel(event.protocol)}
+                    {getProtocolLabel(event.protocol, "compact")}
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between text-muted-foreground">

@@ -6,16 +6,10 @@ import { useAppStore } from "@/lib/store";
 import { decryptSymmetricKey } from "@/lib/encryption";
 import { toast } from "sonner";
 import type { Room, Message } from "@/lib/types";
-
-const PROTOCOL_LABELS: Record<string, string> = {
-  bell_state: "BELL STATE (T22)",
-  bb84: "BB84",
-  e91: "E91",
-  ghz: "CASQKA MULTI-PARTY",
-};
+import { getProtocolLabel as getUiProtocolLabel, normalizeProtocol } from "@/lib/protocol";
 
 function getProtocolLabel(protocol: string): string {
-  return PROTOCOL_LABELS[protocol] || protocol.replace("_", " ").toUpperCase();
+  return getUiProtocolLabel(protocol, "upper");
 }
 
 export function useSocket() {
@@ -159,6 +153,7 @@ export function useSocket() {
       qber: number;
       timeTaken: number;
     }) => {
+      const normalizedProtocol = normalizeProtocol(data.protocol);
       // Decrypt the RSA-OAEP encrypted key with our private key
       const privKey = useAppStore.getState().privateKey;
       if (!privKey) {
@@ -178,7 +173,7 @@ export function useSocket() {
         setRoomKey(data.roomId, binaryKey);
         updateQKDState(data.roomId, {
           qber: data.qber,
-          protocol: data.protocol,
+          protocol: normalizedProtocol,
           isGenerating: false,
           isCompromised: false,
           compromisedDetails: undefined,
@@ -186,7 +181,7 @@ export function useSocket() {
             ...(useAppStore.getState().qkdState[data.roomId]?.timeline || []),
             {
               timestamp: Date.now(),
-              protocol: data.protocol,
+              protocol: normalizedProtocol,
               qber: data.qber,
               keyLength: 256,
               status: "accepted" as const,
@@ -210,7 +205,7 @@ export function useSocket() {
               <div className="grid grid-cols-3 gap-2 rounded-lg bg-muted/50 p-2.5">
                 <div className="text-center">
                   <p className="text-[10px] uppercase text-muted-foreground tracking-wider">Protocol</p>
-                  <p className="text-xs font-semibold mt-0.5">{getProtocolLabel(data.protocol)}</p>
+                  <p className="text-xs font-semibold mt-0.5">{getProtocolLabel(normalizedProtocol)}</p>
                 </div>
                 <div className="text-center">
                   <p className="text-[10px] uppercase text-muted-foreground tracking-wider">QBER</p>
@@ -228,7 +223,7 @@ export function useSocket() {
           ),
           { id: `qkd-${data.roomId}`, duration: 6000 },
         );
-        addEncryptionLog(`QKD key accepted (${getProtocolLabel(data.protocol)})`, data.roomId);
+        addEncryptionLog(`QKD key accepted (${getProtocolLabel(normalizedProtocol)})`, data.roomId);
       } catch (err) {
         console.error("Failed to decrypt symmetric key:", err);
         toast.error("Key decryption failed", { id: `qkd-error-${data.roomId}` });
@@ -250,6 +245,7 @@ export function useSocket() {
       protocol: string;
       threshold?: number;
     }) => {
+      const normalizedProtocol = normalizeProtocol(data.protocol);
       updateQKDState(data.roomId, {
         qber: data.qber,
         isGenerating: false,
@@ -257,7 +253,7 @@ export function useSocket() {
         compromisedDetails: {
           qber: data.qber,
           threshold: data.threshold ?? 0.08,
-          protocol: data.protocol,
+          protocol: normalizedProtocol,
           reason: data.reason,
           timestamp: Date.now(),
         },
@@ -265,7 +261,7 @@ export function useSocket() {
           ...(useAppStore.getState().qkdState[data.roomId]?.timeline || []),
           {
             timestamp: Date.now(),
-            protocol: data.protocol,
+            protocol: normalizedProtocol,
             qber: data.qber,
             keyLength: 0,
             status: "rejected" as const,
@@ -292,7 +288,7 @@ export function useSocket() {
     }) => {
       updateQKDState(data.roomId, {
         qber: data.qber,
-        protocol: data.protocol,
+        protocol: normalizeProtocol(data.protocol),
       });
     });
 

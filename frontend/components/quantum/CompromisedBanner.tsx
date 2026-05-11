@@ -4,13 +4,7 @@ import { useAppStore } from "@/lib/store";
 import { getSocket } from "@/lib/socket";
 import { Button } from "@/components/ui/button";
 import { ShieldAlert, RefreshCw, AlertTriangle } from "lucide-react";
-
-const PROTOCOL_LABELS: Record<string, string> = {
-  bell_state: "Bell State (T22)",
-  bb84: "BB84",
-  e91: "E91",
-  ghz: "CASQKA Multi-Party",
-};
+import { getProtocolLabel } from "@/lib/protocol";
 
 export function CompromisedBanner() {
   const activeRoomId = useAppStore((s) => s.activeRoomId);
@@ -24,8 +18,7 @@ export function CompromisedBanner() {
   const details = activeQKD.compromisedDetails;
   const qberPct = (details.qber * 100).toFixed(1);
   const thresholdPct = (details.threshold * 100).toFixed(0);
-  const protocolLabel =
-    PROTOCOL_LABELS[details.protocol] || details.protocol.replace("_", " ").toUpperCase();
+  const protocolLabel = getProtocolLabel(details.protocol);
 
   const handleSecureChannel = () => {
     if (!activeRoomId) return;
