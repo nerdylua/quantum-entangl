@@ -234,8 +234,52 @@ export function useSocket() {
     socket.on("rekey_started", (data: { roomId: string }) => {
       setKeyGenerating(true);
       if (data.roomId) {
-        updateQKDState(data.roomId, { isGenerating: true });
+        const attackDemo = useAppStore.getState().qkdState[data.roomId]?.attackDemo;
+        updateQKDState(data.roomId, {
+          isGenerating: true,
+          attackDemo: attackDemo?.active ? attackDemo : undefined,
+        });
       }
+    });
+
+    socket.on("attack_demo_started", (data: {
+      roomId: string;
+      protocol: string;
+      initiator: string;
+      samples: Array<{
+        bit: string;
+        aliceBasis: string;
+        eveBasis: string;
+        bobBasis: string;
+        disturbed: boolean;
+      }>;
+    }) => {
+      updateQKDState(data.roomId, {
+        protocol: normalizeProtocol(data.protocol),
+        attackDemo: {
+          active: true,
+          stage: "preparing",
+          startedAt: Date.now(),
+          initiator: data.initiator,
+          samples: data.samples,
+        },
+      });
+    });
+
+    socket.on("attack_demo_stage", (data: {
+      roomId: string;
+      stage: "intercepting" | "detected";
+    }) => {
+      const current = useAppStore.getState().qkdState[data.roomId]?.attackDemo;
+      updateQKDState(data.roomId, {
+        attackDemo: {
+          active: true,
+          stage: data.stage,
+          startedAt: current?.startedAt ?? Date.now(),
+          initiator: current?.initiator,
+          samples: current?.samples || [],
+        },
+      });
     });
 
     socket.on("key_rejected", (data: {
@@ -268,6 +312,9 @@ export function useSocket() {
             reason: data.reason,
           },
         ],
+        attackDemo: useAppStore.getState().qkdState[data.roomId]?.attackDemo
+          ? { ...useAppStore.getState().qkdState[data.roomId].attackDemo!, active: false, stage: "detected" }
+          : undefined,
       });
       setKeyGenerating(false);
       toast.error("Eavesdropper detected — channel compromised", {
@@ -444,6 +491,8 @@ export function useSocket() {
       socket.off("key_exchange");
       socket.off("key_rejected");
       socket.off("rekey_started");
+      socket.off("attack_demo_started");
+      socket.off("attack_demo_stage");
       socket.off("qkd_metrics");
       socket.off("eavesdropper_status");
       socket.off("message");

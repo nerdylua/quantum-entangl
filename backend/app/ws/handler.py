@@ -328,7 +328,55 @@ async def request_rekey(sid, data):
         await sio.emit("error", {"message": "Room not found"}, to=sid)
         return
 
+    if user.nickname not in room.members:
+        await sio.emit("error", {"message": "You are not a member of this room"}, to=sid)
+        return
+
+    if room.key_exchange_active or room.attack_demo_active:
+        await sio.emit("error", {"message": "A key exchange is already in progress"}, to=sid)
+        return
+
     asyncio.create_task(perform_key_exchange(room_id, protocol=protocol))
+
+
+@sio.event
+async def start_eavesdropper_demo(sid, data):
+    """Run one visible intercept-resend demonstration for the whole room."""
+    room_id = data.get("roomId", "")
+    user = room_state.get_user_by_sid(sid)
+    room = room_state.get_room(room_id)
+
+    if not user:
+        await sio.emit("error", {"message": "Not registered"}, to=sid)
+        return
+    if not room:
+        await sio.emit("error", {"message": "Room not found"}, to=sid)
+        return
+    if user.nickname not in room.members:
+        await sio.emit("error", {"message": "You are not a member of this room"}, to=sid)
+        return
+    if room.key_exchange_active or room.attack_demo_active:
+        await sio.emit("error", {"message": "A key exchange is already in progress"}, to=sid)
+        return
+
+    room.attack_demo_active = True
+    await sio.emit(
+        "attack_demo_started",
+        {
+            "roomId": room_id,
+            "protocol": room.protocol,
+            "initiator": user.nickname,
+            "samples": [
+                {"bit": "0", "aliceBasis": "Z", "eveBasis": "X", "bobBasis": "Z", "disturbed": True},
+                {"bit": "1", "aliceBasis": "X", "eveBasis": "X", "bobBasis": "X", "disturbed": False},
+                {"bit": "0", "aliceBasis": "X", "eveBasis": "Z", "bobBasis": "X", "disturbed": True},
+            ],
+        },
+        room=room_id,
+    )
+    asyncio.create_task(
+        perform_key_exchange(room_id, eavesdropper=True, attack_demo=True)
+    )
 
 
 @sio.event

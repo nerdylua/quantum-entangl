@@ -59,6 +59,24 @@ export interface CompromisedDetails {
   timestamp: number;
 }
 
+export type AttackDemoStage = "preparing" | "intercepting" | "detected";
+
+export interface AttackSample {
+  bit: string;
+  aliceBasis: string;
+  eveBasis: string;
+  bobBasis: string;
+  disturbed: boolean;
+}
+
+export interface AttackDemoState {
+  active: boolean;
+  stage: AttackDemoStage;
+  startedAt: number;
+  initiator?: string;
+  samples: AttackSample[];
+}
+
 export interface QKDState {
   qber: number;
   protocol: string;
@@ -67,4 +85,5 @@ export interface QKDState {
   isGenerating: boolean;
   isCompromised: boolean;
   compromisedDetails?: CompromisedDetails;
+  attackDemo?: AttackDemoState;
 }

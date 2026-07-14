@@ -197,6 +197,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
             eveEnabled: false,
             isGenerating: false,
             isCompromised: false,
+            attackDemo: { active: false, stage: "preparing", startedAt: 0, samples: [] },
           }),
           ...partial,
         },

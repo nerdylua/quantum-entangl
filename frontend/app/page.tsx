@@ -334,9 +334,15 @@ function HowItWorksGrid() {
 // ─── 5. Intercept-Resend Visualizer ───
 function InterceptResend() {
   const container = useRef<HTMLDivElement>(null);
-  const [basis, setBasis] = useState<"+" | "x">("+");
+  const [stateLabel, setStateLabel] = useState("|+⟩");
+  const [status, setStatus] = useState("Alice prepares a random quantum state");
 
   useGSAP(() => {
+    const q = gsap.utils.selector(container);
+    const photon = q(".irs-photon");
+    const eveMeasure = q(".irs-eve-measure");
+    const bobMeasure = q(".irs-bob-measure");
+    const qberAlert = q(".irs-qber-alert");
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: container.current,
@@ -346,40 +352,26 @@ function InterceptResend() {
       repeatDelay: 2,
     });
 
-    // Reset Sequence
-    tl.set(".photon", { x: 0, opacity: 0, scale: 1, filter: "brightness(1) hue-rotate(0deg)" })
-      .set(".eve-measure", { opacity: 0, scale: 0.5 })
-      .set(".bob-measure", { opacity: 0, scale: 0.5 })
-      .set(".qber-alert", { opacity: 0, y: 10 })
-
-      // 1. Photon departs
-      .call(() => setBasis("+"))
-      .to(".photon", { opacity: 1, duration: 0.2 })
-
-      // 2. Photon travels to Eve
-      .to(".photon", { x: "47vw", duration: 2, ease: "power1.inOut" })
-
-      // 3. Eve intercepts in WRONG BASIS (x instead of +)
-      .to(".eve-measure", { opacity: 1, scale: 1, duration: 0.3 })
-      .to(".photon", {
-        filter: "brightness(2) hue-rotate(90deg)", // Visually altering the quantum state
-        scale: 1.5,
-        rotate: 45,
-        duration: 0.3
-      })
-      .to(".photon", { scale: 1, duration: 0.2 })
-      .call(() => setBasis("x")) // State collapsed to new basis
-      .to(".eve-measure", { opacity: 0, scale: 0.5, duration: 0.3 }, "+=0.5")
-
-      // 4. Photon travels to Bob
-      .to(".photon", { x: "94vw", duration: 2, ease: "power1.inOut" })
-
-      // 5. Bob measures in original + basis
-      .to(".bob-measure", { opacity: 1, scale: 1, duration: 0.3 })
-      .to(".qber-alert", { opacity: 1, y: 0, duration: 0.3 }) // Discrepancy detected!
-      .to(".photon", { opacity: 0, scale: 0, duration: 0.2 }, "+=0.5")
-      .to(".qber-alert", { opacity: 0, duration: 0.5 }, "+=1.5")
-      .to(".bob-measure", { opacity: 0, duration: 0.5 });
+    tl.set(photon, { left: "0%", xPercent: -50, opacity: 0, scale: 1, rotate: 0, filter: "brightness(1)" })
+      .set([eveMeasure, bobMeasure], { opacity: 0, scale: 0.5 })
+      .set(qberAlert, { opacity: 0, y: 10 })
+      .call(() => { setStateLabel("|+⟩"); setStatus("Alice prepares a random quantum state"); })
+      .to(photon, { opacity: 1, duration: 0.25 })
+      .to(photon, { left: "50%", duration: 2, ease: "power1.inOut" })
+      .call(() => setStatus("Eve chooses a measurement basis without knowing Alice's"))
+      .to(eveMeasure, { opacity: 1, scale: 1, duration: 0.3 })
+      .to(photon, { filter: "brightness(2)", scale: 1.5, rotate: 45, duration: 0.3 })
+      .call(() => setStateLabel("|ψ′⟩"))
+      .to(photon, { scale: 1, rotate: 0, duration: 0.2 })
+      .to(eveMeasure, { opacity: 0, scale: 0.5, duration: 0.3 }, "+=0.55")
+      .call(() => setStatus("Eve forwards a replacement state to Bob"))
+      .to(photon, { left: "100%", duration: 2, ease: "power1.inOut" })
+      .call(() => setStatus("Bob's result can now disagree with Alice's"))
+      .to(bobMeasure, { opacity: 1, scale: 1, duration: 0.3 })
+      .to(qberAlert, { opacity: 1, y: 0, duration: 0.3 })
+      .to(photon, { opacity: 0, scale: 0, duration: 0.2 }, "+=0.55")
+      .to(qberAlert, { opacity: 0, duration: 0.5 }, "+=1.8")
+      .to(bobMeasure, { opacity: 0, duration: 0.5 });
 
   }, { scope: container });
 
@@ -387,10 +379,10 @@ function InterceptResend() {
     <section id="nodes" ref={container} className="py-20 md:py-28 border-y border-[#474747] overflow-hidden bg-[#0e0e0e] relative grid-mask">
       <div className="px-6 md:px-8 max-w-5xl mx-auto mb-16 text-center">
         <h2 className="font-headline font-black text-2xl md:text-4xl uppercase tight-tracking mb-4">
-          Quantum Base Alteration
+          Intercept–Resend Detection
         </h2>
         <p className="text-[#919191] font-mono text-xs max-w-2xl mx-auto uppercase">
-          EVE attempts to intercept the `|+⟩` state. By choosing the wrong measurement basis `|X⟩`, she irreparably collapses the wavefunction. When BOB measures `|+⟩`, the result is randomized, triggering an eavesdropper alert.
+          Eve must measure to learn a quantum state. A wrong basis can disturb it; Alice and Bob expose the added errors by publicly testing a small sample and measuring QBER.
         </p>
       </div>
 
@@ -410,27 +402,27 @@ function InterceptResend() {
         {/* Action Canvas */}
         <div className="flex-1 relative h-32 flex items-center overflow-visible">
           {/* Photon */}
-          <div className="photon absolute left-0 flex items-center justify-center w-6 h-6 bg-white shadow-[0_0_15px_3px_rgba(255,255,255,0.4)] z-20 rounded-full" style={{ opacity: 0 }}>
-            <span className="text-black text-[10px] font-bold">{basis === "+" ? "+" : "x"}</span>
+          <div className="irs-photon absolute top-1/2 -translate-y-1/2 flex items-center justify-center min-w-10 h-6 px-1 bg-white shadow-[0_0_15px_3px_rgba(255,255,255,0.4)] z-20 rounded-full" style={{ opacity: 0 }}>
+            <span className="text-black text-[10px] font-bold whitespace-nowrap">{stateLabel}</span>
           </div>
 
           {/* Eve Intercept Point */}
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none">
-            <div className="eve-measure opacity-0 scale-50 absolute -top-12 text-[#FF0000] border border-[#FF0000] px-2 py-1 text-[10px] whitespace-nowrap bg-black">
-              Measure: |X⟩
+            <div className="irs-eve-measure opacity-0 scale-50 absolute -top-12 text-[#FF0000] border border-[#FF0000] px-2 py-1 text-[10px] whitespace-nowrap bg-black">
+              Eve measures in X basis
             </div>
           </div>
         </div>
 
         {/* Bob Node */}
         <div className="z-10 flex flex-col items-center bg-[#000000] px-3 py-2 border border-[#474747] relative">
-          <div className="qber-alert absolute -top-12 text-[#FF0000] font-mono text-[10px] bg-[#FF0000]/10 px-2 py-1 border border-[#FF0000] whitespace-nowrap" style={{ opacity: 0 }}>
-            ! STATE COLLAPSE
+          <div className="irs-qber-alert absolute -top-12 text-[#FF0000] font-mono text-[10px] bg-[#FF0000]/10 px-2 py-1 border border-[#FF0000] whitespace-nowrap" style={{ opacity: 0 }}>
+            TEST SAMPLE MISMATCH → QBER ↑
           </div>
           <div className="text-[10px] text-[#c6c6c6] mb-2 uppercase">B_Node</div>
           <div className="w-12 h-12 border border-[#474747] flex items-center justify-center font-headline font-bold text-xl relative">
             B
-            <div className="bob-measure absolute -left-12 bottom-0 text-[10px] text-white bg-black border border-white px-1">Expect: |+⟩</div>
+            <div className="irs-bob-measure absolute -left-16 bottom-0 text-[10px] text-white bg-black border border-white px-1">Bob measures + basis</div>
           </div>
         </div>
 
@@ -443,6 +435,7 @@ function InterceptResend() {
           <span className="font-mono text-[9px] mt-2 text-[#FF0000]">EV_INTRUSION</span>
         </div>
       </div>
+      <p className="mt-6 min-h-4 text-center font-mono text-[10px] uppercase text-[#c6c6c6]" aria-live="polite">{status}</p>
     </section>
   );
 }

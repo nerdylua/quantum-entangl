@@ -1,79 +1,49 @@
 "use client";
 
-import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { AttackDemoPlayer } from "./AttackDemoPlayer";
 import { useAppStore } from "@/lib/store";
 import { getSocket } from "@/lib/socket";
-import { ShieldAlert, ShieldCheck, RefreshCw } from "lucide-react";
+import { Eye, RefreshCw, ShieldAlert, ShieldCheck } from "lucide-react";
 
 export function EavesdropperToggle() {
   const activeRoomId = useAppStore((s) => s.activeRoomId);
   const qkdState = useAppStore((s) => s.qkdState);
   const isKeyGenerating = useAppStore((s) => s.isKeyGenerating);
-
   const activeQKD = activeRoomId ? qkdState[activeRoomId] : undefined;
-  const eveEnabled = activeQKD?.eveEnabled ?? false;
-  const isCompromised = activeQKD?.isCompromised ?? false;
+  const demo = activeQKD?.attackDemo;
+  const demoHasRun = Boolean(demo?.startedAt);
 
-  const handleToggle = (checked: boolean) => {
+  const handleStartDemo = () => {
     if (!activeRoomId) return;
-    const socket = getSocket();
-    socket.emit("toggle_eavesdropper", {
-      roomId: activeRoomId,
-      enabled: checked,
-    });
-    // Optimistic update — server skips sender via skip_sid
-    useAppStore.getState().updateQKDState(activeRoomId, { eveEnabled: checked });
+    getSocket().emit("start_eavesdropper_demo", { roomId: activeRoomId });
   };
 
   const handleRekey = () => {
     if (!activeRoomId) return;
-    const socket = getSocket();
-    socket.emit("request_rekey", { roomId: activeRoomId });
+    getSocket().emit("request_rekey", { roomId: activeRoomId });
   };
 
   return (
-    <div className="rounded-lg border p-3 space-y-3">
-      <div className="flex items-center justify-between">
+    <>
+      <div className="rounded-lg border p-3 space-y-3">
         <div className="flex items-center gap-2">
-          {eveEnabled ? (
-            <ShieldAlert className="h-4 w-4 text-destructive" />
-          ) : (
-            <ShieldCheck className="h-4 w-4 text-emerald-500" />
-          )}
-          <Label htmlFor="eve-toggle" className="text-sm font-medium cursor-pointer">
-            Simulate Eavesdropper
-          </Label>
+          {demoHasRun ? <ShieldAlert className="h-4 w-4 text-destructive" /> : <ShieldCheck className="h-4 w-4 text-emerald-500" />}
+          <span className="text-sm font-medium">Eavesdropper Attack</span>
         </div>
-        <Switch
-          id="eve-toggle"
-          checked={eveEnabled}
-          onCheckedChange={handleToggle}
-          disabled={!activeRoomId || isCompromised}
-        />
-      </div>
-      {eveEnabled && (
         <p className="text-xs text-muted-foreground">
-          Injects a measurement attack into the quantum channel. The next key
-          exchange will show elevated QBER.
+          A guided intercept-resend demonstration that explains why quantum-channel observation is detectable.
         </p>
-      )}
-      {isCompromised && !eveEnabled && (
-        <p className="text-xs text-destructive">
-          Eavesdropper auto-disabled after detection.
-        </p>
-      )}
-      <Button
-        variant="outline"
-        size="sm"
-        className="w-full"
-        onClick={handleRekey}
-        disabled={!activeRoomId || isKeyGenerating}
-      >
-        <RefreshCw className={`h-3.5 w-3.5 mr-2 ${isKeyGenerating ? "animate-spin" : ""}`} />
-        {isKeyGenerating ? "Generating Key..." : "Rekey Now"}
-      </Button>
-    </div>
+        <Button variant="destructive" size="sm" className="w-full" onClick={handleStartDemo} disabled={!activeRoomId || isKeyGenerating || demoHasRun}>
+          <Eye className="h-3.5 w-3.5 mr-2" />
+          {demoHasRun ? "Rekey Required" : "Run Attack Demo"}
+        </Button>
+        <Button variant="outline" size="sm" className="w-full" onClick={handleRekey} disabled={!activeRoomId || isKeyGenerating}>
+          <RefreshCw className={`h-3.5 w-3.5 mr-2 ${isKeyGenerating ? "animate-spin" : ""}`} />
+          {isKeyGenerating ? "Generating Key..." : "Rekey Now"}
+        </Button>
+      </div>
+      <AttackDemoPlayer demo={demo} compromisedDetails={activeQKD?.compromisedDetails} />
+    </>
   );
 }

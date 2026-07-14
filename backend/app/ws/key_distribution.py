@@ -30,7 +30,13 @@ def _encrypt_key_for_user(binary_key: str, public_key_pem: str) -> str:
     return base64.b64encode(encrypted).decode("utf-8")
 
 
-async def perform_key_exchange(room_id: str, protocol: str | None = None):
+async def perform_key_exchange(
+    room_id: str,
+    protocol: str | None = None,
+    *,
+    eavesdropper: bool | None = None,
+    attack_demo: bool = False,
+):
     """
     Run QKD key generation and distribute the encrypted key to all room members.
 
@@ -45,6 +51,35 @@ async def perform_key_exchange(room_id: str, protocol: str | None = None):
     if not room:
         return
 
+    if room.key_exchange_active:
+        return
+
+    room.key_exchange_active = True
+    try:
+        await _perform_key_exchange(
+            room_id,
+            protocol=protocol,
+            eavesdropper=eavesdropper,
+            attack_demo=attack_demo,
+        )
+    finally:
+        room.key_exchange_active = False
+        if attack_demo:
+            room.attack_demo_active = False
+
+
+async def _perform_key_exchange(
+    room_id: str,
+    protocol: str | None = None,
+    *,
+    eavesdropper: bool | None = None,
+    attack_demo: bool = False,
+):
+    """Execute an already-locked key exchange."""
+    room = room_state.get_room(room_id)
+    if not room:
+        return
+
     if protocol:
         room.protocol = protocol
 
@@ -54,11 +89,18 @@ async def perform_key_exchange(room_id: str, protocol: str | None = None):
     # Notify clients that key generation is starting
     await sio.emit("rekey_started", {"roomId": room_id}, room=room_id)
 
+    if attack_demo:
+        await sio.emit(
+            "attack_demo_stage",
+            {"roomId": room_id, "stage": "intercepting"},
+            room=room_id,
+        )
+
     # Run QKD engine (auto-selects GHZ for 3+ parties)
     result: KeyResult = await generate_key(
         protocol=room.protocol,
         key_length=256,
-        eavesdropper=room.eve_enabled,
+        eavesdropper=room.eve_enabled if eavesdropper is None else eavesdropper,
         n_parties=n_parties,
     )
 
@@ -71,6 +113,18 @@ async def perform_key_exchange(room_id: str, protocol: str | None = None):
             "ghz": 0.08,
         }
         threshold = thresholds.get(result.protocol, 0.08)
+
+        if attack_demo:
+            await sio.emit(
+                "attack_demo_stage",
+                {
+                    "roomId": room_id,
+                    "stage": "detected",
+                    "qber": result.qber,
+                    "threshold": threshold,
+                },
+                room=room_id,
+            )
 
         await sio.emit(
             "key_rejected",

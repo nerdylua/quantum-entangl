@@ -22,6 +22,8 @@ class Room:
     members: list[str]  # nicknames
     protocol: str = "bell_state"
     eve_enabled: bool = False
+    key_exchange_active: bool = False
+    attack_demo_active: bool = False
 
 
 # In-memory state
